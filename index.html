@@ -55,11 +55,21 @@
       padding-left: 4px;
     }
 
+    /* Top row (Main + Penalty/Referee) */
     .boards {
       display: flex;
       gap: 14px;
       align-items: flex-start;
-      flex-wrap: wrap; /* important: wraps on smaller screens */
+      flex-wrap: wrap; /* wraps on smaller screens */
+      margin-bottom: 14px;
+    }
+
+    /* Second row (Mirror + Flip) */
+    .boards-below {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      flex-wrap: wrap;
     }
 
     .board {
@@ -141,6 +151,18 @@
     </section>
   </div>
 
+  <div class="boards-below">
+    <section class="board">
+      <h2>Mirror Sequences</h2>
+      <div id="mirrorGrid" class="grid" role="grid" aria-label="Mirror Sequences grid"></div>
+    </section>
+
+    <section class="board">
+      <h2>Flip Sequences</h2>
+      <div id="flipGrid" class="grid" role="grid" aria-label="Flip Sequences grid"></div>
+    </section>
+  </div>
+
   <footer>
     Shared mode: updates sync for everyone using the same page (Firebase Firestore).
   </footer>
@@ -151,27 +173,30 @@
       getFirestore, doc, onSnapshot, runTransaction, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    // ✅ PASTE YOUR firebaseConfig HERE
+    // Using your existing Firebase config
     const firebaseConfig = {
-       apiKey: "AIzaSyBQtfudSJNZb3AyQiNTDfZM0E0LwdEBm1M",
-    authDomain: "seq-helper-2026.firebaseapp.com",
-    projectId: "seq-helper-2026",
-    storageBucket: "seq-helper-2026.firebasestorage.app",
-    messagingSenderId: "724035616020",
-    appId: "1:724035616020:web:bb31393c2bec91ca955601",
-    measurementId: "G-YDCLDEBSYF"
-
+      apiKey: "AIzaSyBQtfudSJNZb3AyQiNTDfZM0E0LwdEBm1M",
+      authDomain: "seq-helper-2026.firebaseapp.com",
+      projectId: "seq-helper-2026",
+      storageBucket: "seq-helper-2026.firebasestorage.app",
+      messagingSenderId: "724035616020",
+      appId: "1:724035616020:web:bb31393c2bec91ca955601",
+      measurementId: "G-YDCLDEBSYF"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
     // ---- Configuration ----
-    const MAIN = { cols: 16, total: 240, start: 1, title: "Main Sequence" };
+    const MAIN   = { key: "main",   cols: 16, total: 240, start: 1,    title: "Main Sequence" };
+    const MIRROR = { key: "mirror", cols: 16, total: 240, start: 1,    title: "Mirror Sequences" };
+    const FLIP   = { key: "flip",   cols: 16, total: 240, start: 1,    title: "Flip Sequences" };
     // 1000..1050 inclusive => 51 blocks
-    const PR   = { cols: 10, total: 51,  start: 1000, title: "Penalty & Referee Sequence" };
+    const PR     = { key: "pr",     cols: 10, total: 51,  start: 1000, title: "Penalty & Referee Sequence" };
 
-    const GRAND_TOTAL = MAIN.total + PR.total;
+    const ALL = [MAIN, MIRROR, FLIP, PR];
+
+    const GRAND_TOTAL = ALL.reduce((sum, cfg) => sum + cfg.total, 0);
 
     const trackerDocId = "shared_tracker_v1"; // one shared board for everyone
     const docRef = doc(db, "trackers", trackerDocId);
@@ -184,14 +209,22 @@
     const exportCsvBtn = document.getElementById("exportCsvBtn");
     const syncStatusEl = document.getElementById("syncStatus");
 
-    const mainGridEl = document.getElementById("mainGrid");
-    const prGridEl = document.getElementById("prGrid");
-
     totalCountEl.textContent = String(GRAND_TOTAL);
 
+    const gridEls = {
+      main: document.getElementById("mainGrid"),
+      pr: document.getElementById("prGrid"),
+      mirror: document.getElementById("mirrorGrid"),
+      flip: document.getElementById("flipGrid"),
+    };
+
     // In-memory state (synced from Firestore)
-    let mainSet = new Set(); // stores numbers 1..240
-    let prSet = new Set();   // stores numbers 1000..1050
+    const sets = {
+      main: new Set(),    // 1..240
+      mirror: new Set(),  // 1..240
+      flip: new Set(),    // 1..240
+      pr: new Set(),      // 1000..1050
+    };
 
     let busy = false;
 
@@ -200,7 +233,9 @@
     }
 
     function updateCumulativeCounts() {
-      const completed = mainSet.size + prSet.size;
+      const completed =
+        sets.main.size + sets.mirror.size + sets.flip.size + sets.pr.size;
+
       completedCountEl.textContent = String(completed);
       remainingCountEl.textContent = String(GRAND_TOTAL - completed);
     }
@@ -220,7 +255,7 @@
         cell.setAttribute("role", "gridcell");
         cell.dataset.value = String(value);
 
-        cell.addEventListener("click", () => onCellClick(value));
+        cell.addEventListener("click", () => onCellClick(cfg.key, value));
 
         frag.appendChild(cell);
       }
@@ -228,7 +263,6 @@
     }
 
     function applyStateToGrid(gridEl, set, cfg) {
-      // Cells are in order; just check membership
       for (let i = 0; i < cfg.total; i++) {
         const value = cfg.start + i;
         const cell = gridEl.children[i];
@@ -255,44 +289,43 @@
     }
 
     function exportTxt() {
-      const mainList = getSorted(mainSet);
-      const prList = getSorted(prSet);
+      const lines = [];
 
-      const lines = [
-        MAIN.title,
-        ...mainList.map(String),
-        "",
-        PR.title,
-        ...prList.map(String),
-        ""
-      ].join("\n");
+      for (const cfg of ALL) {
+        const list = getSorted(sets[cfg.key]);
+        lines.push(cfg.title);
+        lines.push(...list.map(String));
+        lines.push(""); // blank line between sections
+      }
 
-      downloadBlob(new Blob([lines], { type: "text/plain;charset=utf-8" }), "sequences.txt");
+      downloadBlob(
+        new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" }),
+        "sequences.txt"
+      );
     }
 
     function exportCsv() {
-      const mainList = getSorted(mainSet);
-      const prList = getSorted(prSet);
+      const lines = [];
 
-      // CSV with sections (Excel-friendly)
-      const lines = [
-        MAIN.title,
-        "BlockNumber",
-        ...mainList.map(n => String(n)),
-        "",
-        PR.title,
-        "BlockNumber",
-        ...prList.map(n => String(n))
-      ].join("\r\n") + "\r\n";
+      for (const cfg of ALL) {
+        const list = getSorted(sets[cfg.key]);
+        lines.push(cfg.title);
+        lines.push("BlockNumber");
+        lines.push(...list.map(n => String(n)));
+        lines.push(""); // blank line between sections
+      }
 
-      downloadBlob(new Blob([lines], { type: "text/csv;charset=utf-8" }), "sequences.csv");
+      downloadBlob(
+        new Blob([lines.join("\r\n") + "\r\n"], { type: "text/csv;charset=utf-8" }),
+        "sequences.csv"
+      );
     }
 
     exportTxtBtn.addEventListener("click", exportTxt);
     exportCsvBtn.addEventListener("click", exportCsv);
 
     // ---- Click handling (transaction updates one shared doc) ----
-    async function toggleInFirestore(which, value) {
+    async function toggleInFirestore(whichKey, value) {
       if (busy) return;
       busy = true;
       syncStatusEl.textContent = "Saving…";
@@ -302,27 +335,40 @@
           const snap = await tx.get(docRef);
           const data = snap.exists() ? snap.data() : {};
 
-          const mainArr = sanitizeIntArray(data.mainCompleted);
-          const prArr = sanitizeIntArray(data.prCompleted);
+          // Field mapping in Firestore doc
+          const fields = {
+            main: "mainCompleted",
+            pr: "prCompleted",
+            mirror: "mirrorCompleted",
+            flip: "flipCompleted",
+          };
 
-          const mSet = new Set(mainArr);
-          const pSet = new Set(prArr);
+          const mSet = new Set(sanitizeIntArray(data[fields.main]));
+          const pSet = new Set(sanitizeIntArray(data[fields.pr]));
+          const mirSet = new Set(sanitizeIntArray(data[fields.mirror]));
+          const fSet = new Set(sanitizeIntArray(data[fields.flip]));
 
-          if (which === "main") {
-            if (mSet.has(value)) mSet.delete(value);
-            else mSet.add(value);
-          } else {
-            if (pSet.has(value)) pSet.delete(value);
-            else pSet.add(value);
-          }
+          const target = (k) => ({
+            main: mSet,
+            pr: pSet,
+            mirror: mirSet,
+            flip: fSet
+          })[k];
+
+          const tSet = target(whichKey);
+          if (!tSet) return;
+
+          if (tSet.has(value)) tSet.delete(value);
+          else tSet.add(value);
 
           tx.set(docRef, {
-            mainCompleted: Array.from(mSet).sort((a,b)=>a-b),
-            prCompleted: Array.from(pSet).sort((a,b)=>a-b),
+            [fields.main]: Array.from(mSet).sort((a,b)=>a-b),
+            [fields.pr]: Array.from(pSet).sort((a,b)=>a-b),
+            [fields.mirror]: Array.from(mirSet).sort((a,b)=>a-b),
+            [fields.flip]: Array.from(fSet).sort((a,b)=>a-b),
             updatedAt: serverTimestamp()
           }, { merge: true });
         });
-        // Snapshot listener will refresh UI
       } catch (e) {
         console.error(e);
         alert("Failed to save. Check Firebase config / Firestore rules.");
@@ -332,8 +378,9 @@
     }
 
     // Build skeleton once
-    buildGridSkeleton(mainGridEl, MAIN, (value) => toggleInFirestore("main", value));
-    buildGridSkeleton(prGridEl, PR, (value) => toggleInFirestore("pr", value));
+    for (const cfg of ALL) {
+      buildGridSkeleton(gridEls[cfg.key], cfg, (key, value) => toggleInFirestore(key, value));
+    }
 
     // ---- Live sync ----
     syncStatusEl.textContent = "Connecting…";
@@ -341,16 +388,21 @@
       syncStatusEl.textContent = "Synced ✓";
       const data = snap.exists() ? snap.data() : {};
 
-      // Main: only accept 1..240
-      const mainArr = sanitizeIntArray(data.mainCompleted).filter(n => n >= MAIN.start && n < MAIN.start + MAIN.total);
-      // PR: only accept 1000..1050
-      const prArr = sanitizeIntArray(data.prCompleted).filter(n => n >= PR.start && n < PR.start + PR.total);
+      const fieldByKey = {
+        main: "mainCompleted",
+        pr: "prCompleted",
+        mirror: "mirrorCompleted",
+        flip: "flipCompleted",
+      };
 
-      mainSet = new Set(mainArr);
-      prSet = new Set(prArr);
+      for (const cfg of ALL) {
+        const raw = sanitizeIntArray(data[fieldByKey[cfg.key]]);
+        const filtered = raw.filter(n => n >= cfg.start && n < cfg.start + cfg.total);
 
-      applyStateToGrid(mainGridEl, mainSet, MAIN);
-      applyStateToGrid(prGridEl, prSet, PR);
+        sets[cfg.key] = new Set(filtered);
+        applyStateToGrid(gridEls[cfg.key], sets[cfg.key], cfg);
+      }
+
       updateCumulativeCounts();
     }, (err) => {
       console.error(err);
@@ -363,5 +415,3 @@
   </script>
 </body>
 </html>
-
-
