@@ -18,26 +18,12 @@
       color: #222;
     }
 
-    .board {
-      border: 1px solid #eee;
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 16px;
-      background: #fff;
-      box-shadow: 0 1px 0 rgba(0,0,0,0.03);
-    }
-
-    .board h2 {
-      margin: 0 0 10px 0;
-      font-size: 16px;
-    }
-
-    .row {
+    header {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 10px 14px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
     .stats {
@@ -61,12 +47,33 @@
       border-radius: 10px;
       font-weight: 700;
     }
-
     button.action:hover { background: #f5f5f5; }
 
     .status {
       font-size: 13px;
       color: #555;
+      padding-left: 4px;
+    }
+
+    .boards {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      flex-wrap: wrap; /* important: wraps on smaller screens */
+    }
+
+    .board {
+      flex: 1 1 520px; /* side-by-side if space; wraps otherwise */
+      border: 1px solid #eee;
+      border-radius: 14px;
+      padding: 14px;
+      background: #fff;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+    }
+
+    .board h2 {
+      margin: 0 0 10px 0;
+      font-size: 16px;
     }
 
     .grid {
@@ -99,7 +106,7 @@
     }
 
     footer {
-      margin-top: 10px;
+      margin-top: 12px;
       font-size: 12px;
       color: #666;
     }
@@ -108,42 +115,30 @@
     @media (max-width: 650px) { :root { --cell-size: 32px; --gap: 5px; } }
   </style>
 </head>
+
 <body>
-
-  <div class="board">
-    <h2>Main Grid (15×16)</h2>
-
-    <div class="row">
-      <div class="stats" aria-live="polite">
-        <div class="stat">Completed: <b id="mainCompletedCount">0</b></div>
-        <div class="stat">Remaining: <b id="mainRemainingCount">240</b></div>
-        <div class="stat">Total: <b>240</b></div>
-      </div>
-
-      <button class="action" id="mainExportTxtBtn" type="button">Export (.txt)</button>
-      <button class="action" id="mainExportCsvBtn" type="button">Export (.csv / Excel)</button>
-      <span class="status" id="mainSyncStatus">Connecting…</span>
+  <header>
+    <div class="stats" aria-live="polite">
+      <div class="stat">Completed: <b id="completedCount">0</b></div>
+      <div class="stat">Remaining: <b id="remainingCount">0</b></div>
+      <div class="stat">Total: <b id="totalCount">0</b></div>
     </div>
 
-    <div id="mainGrid" class="grid" role="grid" aria-label="15 by 16 clickable grid"></div>
-  </div>
+    <button class="action" id="exportTxtBtn" type="button">Export (.txt)</button>
+    <button class="action" id="exportCsvBtn" type="button">Export (.csv / Excel)</button>
+    <span class="status" id="syncStatus">Connecting…</span>
+  </header>
 
-  <div class="board">
-    <h2>Penalty & Referee Sequences (5×10)</h2>
+  <div class="boards">
+    <section class="board">
+      <h2>Main Sequence (15×16)</h2>
+      <div id="mainGrid" class="grid" role="grid" aria-label="Main Sequence grid"></div>
+    </section>
 
-    <div class="row">
-      <div class="stats" aria-live="polite">
-        <div class="stat">Completed: <b id="prCompletedCount">0</b></div>
-        <div class="stat">Remaining: <b id="prRemainingCount">50</b></div>
-        <div class="stat">Total: <b>50</b></div>
-      </div>
-
-      <button class="action" id="prExportTxtBtn" type="button">Export (.txt)</button>
-      <button class="action" id="prExportCsvBtn" type="button">Export (.csv / Excel)</button>
-      <span class="status" id="prSyncStatus">Connecting…</span>
-    </div>
-
-    <div id="prGrid" class="grid" role="grid" aria-label="5 by 10 clickable grid"></div>
+    <section class="board">
+      <h2>Penalty &amp; Referee Sequence</h2>
+      <div id="prGrid" class="grid" role="grid" aria-label="Penalty and Referee Sequence grid"></div>
+    </section>
   </div>
 
   <footer>
@@ -158,17 +153,91 @@
 
     // ✅ PASTE YOUR firebaseConfig HERE
     const firebaseConfig = {
-      apiKey: "AIzaSyBQtfudSJNZb3AyQiNTDfZM0E0LwdEBm1M",
+       apiKey: "AIzaSyBQtfudSJNZb3AyQiNTDfZM0E0LwdEBm1M",
     authDomain: "seq-helper-2026.firebaseapp.com",
     projectId: "seq-helper-2026",
     storageBucket: "seq-helper-2026.firebasestorage.app",
     messagingSenderId: "724035616020",
     appId: "1:724035616020:web:bb31393c2bec91ca955601",
     measurementId: "G-YDCLDEBSYF"
+
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+    // ---- Configuration ----
+    const MAIN = { cols: 16, total: 240, start: 1, title: "Main Sequence" };
+    // 1000..1050 inclusive => 51 blocks
+    const PR   = { cols: 10, total: 51,  start: 1000, title: "Penalty & Referee Sequence" };
+
+    const GRAND_TOTAL = MAIN.total + PR.total;
+
+    const trackerDocId = "shared_tracker_v1"; // one shared board for everyone
+    const docRef = doc(db, "trackers", trackerDocId);
+
+    // ---- UI ----
+    const completedCountEl = document.getElementById("completedCount");
+    const remainingCountEl = document.getElementById("remainingCount");
+    const totalCountEl = document.getElementById("totalCount");
+    const exportTxtBtn = document.getElementById("exportTxtBtn");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+    const syncStatusEl = document.getElementById("syncStatus");
+
+    const mainGridEl = document.getElementById("mainGrid");
+    const prGridEl = document.getElementById("prGrid");
+
+    totalCountEl.textContent = String(GRAND_TOTAL);
+
+    // In-memory state (synced from Firestore)
+    let mainSet = new Set(); // stores numbers 1..240
+    let prSet = new Set();   // stores numbers 1000..1050
+
+    let busy = false;
+
+    function sanitizeIntArray(arr) {
+      return Array.isArray(arr) ? arr.filter(n => Number.isInteger(n)) : [];
+    }
+
+    function updateCumulativeCounts() {
+      const completed = mainSet.size + prSet.size;
+      completedCountEl.textContent = String(completed);
+      remainingCountEl.textContent = String(GRAND_TOTAL - completed);
+    }
+
+    function buildGridSkeleton(gridEl, cfg, onCellClick) {
+      gridEl.style.gridTemplateColumns = `repeat(${cfg.cols}, var(--cell-size))`;
+      gridEl.innerHTML = "";
+
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < cfg.total; i++) {
+        const value = cfg.start + i;
+
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "cell";
+        cell.textContent = value;
+        cell.setAttribute("role", "gridcell");
+        cell.dataset.value = String(value);
+
+        cell.addEventListener("click", () => onCellClick(value));
+
+        frag.appendChild(cell);
+      }
+      gridEl.appendChild(frag);
+    }
+
+    function applyStateToGrid(gridEl, set, cfg) {
+      // Cells are in order; just check membership
+      for (let i = 0; i < cfg.total; i++) {
+        const value = cfg.start + i;
+        const cell = gridEl.children[i];
+        const done = set.has(value);
+
+        cell.classList.toggle("green", done);
+        cell.setAttribute("aria-pressed", done ? "true" : "false");
+      }
+    }
 
     function downloadBlob(blob, filename) {
       const url = URL.createObjectURL(blob);
@@ -181,164 +250,116 @@
       URL.revokeObjectURL(url);
     }
 
-    /**
-     * Creates a shared grid that syncs to a Firestore document:
-     * collection: trackers
-     * docId: provided
-     * field: completed (number array)
-     */
-    function createSharedGrid(opts) {
-      const {
-        docId,
-        rows,
-        cols,
-        total,
-        gridEl,
-        completedCountEl,
-        remainingCountEl,
-        exportTxtBtn,
-        exportCsvBtn,
-        syncStatusEl,
-        exportBaseName
-      } = opts;
-
-      gridEl.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
-
-      const docRef = doc(db, "trackers", docId);
-
-      let completedSet = new Set();
-      let busy = false;
-
-      function updateCounts() {
-        completedCountEl.textContent = String(completedSet.size);
-        remainingCountEl.textContent = String(total - completedSet.size);
-      }
-
-      function renderGridSkeletonIfNeeded() {
-        if (gridEl.childElementCount === total) return;
-
-        gridEl.innerHTML = "";
-        const frag = document.createDocumentFragment();
-
-        for (let i = 1; i <= total; i++) {
-          const cell = document.createElement("button");
-          cell.type = "button";
-          cell.className = "cell";
-          cell.textContent = i;
-          cell.setAttribute("role", "gridcell");
-          cell.dataset.index = String(i);
-
-          cell.addEventListener("click", async () => {
-            if (busy) return;
-            busy = true;
-            syncStatusEl.textContent = "Saving…";
-
-            const idx = Number(cell.dataset.index);
-
-            try {
-              await runTransaction(db, async (tx) => {
-                const snap = await tx.get(docRef);
-                const data = snap.exists() ? snap.data() : {};
-                const arr = Array.isArray(data.completed) ? data.completed : [];
-                const set = new Set(
-                  arr.filter(n => Number.isInteger(n) && n >= 1 && n <= total)
-                );
-
-                if (set.has(idx)) set.delete(idx);
-                else set.add(idx);
-
-                tx.set(docRef, { completed: Array.from(set).sort((a,b)=>a-b), updatedAt: serverTimestamp() }, { merge: true });
-              });
-            } catch (e) {
-              console.error(e);
-              alert("Failed to save. Check Firebase config / Firestore rules.");
-            } finally {
-              busy = false;
-            }
-          });
-
-          frag.appendChild(cell);
-        }
-
-        gridEl.appendChild(frag);
-      }
-
-      function applyStateToUI() {
-        for (let i = 1; i <= total; i++) {
-          const cell = gridEl.children[i - 1];
-          const done = completedSet.has(i);
-          cell.classList.toggle("green", done);
-          cell.setAttribute("aria-pressed", done ? "true" : "false");
-        }
-        updateCounts();
-      }
-
-      function getList() {
-        return Array.from(completedSet).sort((a, b) => a - b);
-      }
-
-      exportTxtBtn.addEventListener("click", () => {
-        const list = getList();
-        const content = list.length ? list.join("\n") + "\n" : "";
-        downloadBlob(new Blob([content], { type: "text/plain;charset=utf-8" }), `${exportBaseName}.txt`);
-      });
-
-      exportCsvBtn.addEventListener("click", () => {
-        const list = getList();
-        const lines = ["BlockNumber", ...list.map(String)];
-        const csv = lines.join("\r\n") + "\r\n";
-        downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), `${exportBaseName}.csv`);
-      });
-
-      // Initial render
-      renderGridSkeletonIfNeeded();
-      applyStateToUI();
-
-      // Live sync
-      syncStatusEl.textContent = "Connecting…";
-      onSnapshot(docRef, (snap) => {
-        syncStatusEl.textContent = "Synced ✓";
-        const data = snap.exists() ? snap.data() : {};
-        const arr = Array.isArray(data.completed) ? data.completed : [];
-        completedSet = new Set(arr.filter(n => Number.isInteger(n) && n >= 1 && n <= total));
-        renderGridSkeletonIfNeeded();
-        applyStateToUI();
-      }, (err) => {
-        console.error(err);
-        syncStatusEl.textContent = "Sync error";
-        alert("Sync error. Check Firebase config / Firestore rules.");
-      });
+    function getSorted(set) {
+      return Array.from(set).sort((a, b) => a - b);
     }
 
-    // Main 15x16 grid (1..240)
-    createSharedGrid({
-      docId: "main_15x16",
-      rows: 15,
-      cols: 16,
-      total: 240,
-      gridEl: document.getElementById("mainGrid"),
-      completedCountEl: document.getElementById("mainCompletedCount"),
-      remainingCountEl: document.getElementById("mainRemainingCount"),
-      exportTxtBtn: document.getElementById("mainExportTxtBtn"),
-      exportCsvBtn: document.getElementById("mainExportCsvBtn"),
-      syncStatusEl: document.getElementById("mainSyncStatus"),
-      exportBaseName: "main_grid"
+    function exportTxt() {
+      const mainList = getSorted(mainSet);
+      const prList = getSorted(prSet);
+
+      const lines = [
+        MAIN.title,
+        ...mainList.map(String),
+        "",
+        PR.title,
+        ...prList.map(String),
+        ""
+      ].join("\n");
+
+      downloadBlob(new Blob([lines], { type: "text/plain;charset=utf-8" }), "sequences.txt");
+    }
+
+    function exportCsv() {
+      const mainList = getSorted(mainSet);
+      const prList = getSorted(prSet);
+
+      // CSV with sections (Excel-friendly)
+      const lines = [
+        MAIN.title,
+        "BlockNumber",
+        ...mainList.map(n => String(n)),
+        "",
+        PR.title,
+        "BlockNumber",
+        ...prList.map(n => String(n))
+      ].join("\r\n") + "\r\n";
+
+      downloadBlob(new Blob([lines], { type: "text/csv;charset=utf-8" }), "sequences.csv");
+    }
+
+    exportTxtBtn.addEventListener("click", exportTxt);
+    exportCsvBtn.addEventListener("click", exportCsv);
+
+    // ---- Click handling (transaction updates one shared doc) ----
+    async function toggleInFirestore(which, value) {
+      if (busy) return;
+      busy = true;
+      syncStatusEl.textContent = "Saving…";
+
+      try {
+        await runTransaction(db, async (tx) => {
+          const snap = await tx.get(docRef);
+          const data = snap.exists() ? snap.data() : {};
+
+          const mainArr = sanitizeIntArray(data.mainCompleted);
+          const prArr = sanitizeIntArray(data.prCompleted);
+
+          const mSet = new Set(mainArr);
+          const pSet = new Set(prArr);
+
+          if (which === "main") {
+            if (mSet.has(value)) mSet.delete(value);
+            else mSet.add(value);
+          } else {
+            if (pSet.has(value)) pSet.delete(value);
+            else pSet.add(value);
+          }
+
+          tx.set(docRef, {
+            mainCompleted: Array.from(mSet).sort((a,b)=>a-b),
+            prCompleted: Array.from(pSet).sort((a,b)=>a-b),
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+        });
+        // Snapshot listener will refresh UI
+      } catch (e) {
+        console.error(e);
+        alert("Failed to save. Check Firebase config / Firestore rules.");
+      } finally {
+        busy = false;
+      }
+    }
+
+    // Build skeleton once
+    buildGridSkeleton(mainGridEl, MAIN, (value) => toggleInFirestore("main", value));
+    buildGridSkeleton(prGridEl, PR, (value) => toggleInFirestore("pr", value));
+
+    // ---- Live sync ----
+    syncStatusEl.textContent = "Connecting…";
+    onSnapshot(docRef, (snap) => {
+      syncStatusEl.textContent = "Synced ✓";
+      const data = snap.exists() ? snap.data() : {};
+
+      // Main: only accept 1..240
+      const mainArr = sanitizeIntArray(data.mainCompleted).filter(n => n >= MAIN.start && n < MAIN.start + MAIN.total);
+      // PR: only accept 1000..1050
+      const prArr = sanitizeIntArray(data.prCompleted).filter(n => n >= PR.start && n < PR.start + PR.total);
+
+      mainSet = new Set(mainArr);
+      prSet = new Set(prArr);
+
+      applyStateToGrid(mainGridEl, mainSet, MAIN);
+      applyStateToGrid(prGridEl, prSet, PR);
+      updateCumulativeCounts();
+    }, (err) => {
+      console.error(err);
+      syncStatusEl.textContent = "Sync error";
+      alert("Sync error. Check Firebase config / Firestore rules.");
     });
 
-    // Penalty & Referee sequences 5x10 grid (1..50)
-    createSharedGrid({
-      docId: "penalty_referee_5x10",
-      rows: 5,
-      cols: 10,
-      total: 50,
-      gridEl: document.getElementById("prGrid"),
-      completedCountEl: document.getElementById("prCompletedCount"),
-      remainingCountEl: document.getElementById("prRemainingCount"),
-      exportTxtBtn: document.getElementById("prExportTxtBtn"),
-      exportCsvBtn: document.getElementById("prExportCsvBtn"),
-      syncStatusEl: document.getElementById("prSyncStatus"),
-      exportBaseName: "penalty_referee_grid"
-    });
+    // Initial counts
+    updateCumulativeCounts();
   </script>
 </body>
 </html>
