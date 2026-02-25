@@ -5,121 +5,80 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Seq Completion Tracker</title>
   <style>
-    :root {
-      --gap: 6px;
-      --cell-size: 46px;
-      --green: #2ecc71;
-      --border: #d0d0d0;
-    }
+    :root { --gap: 6px; --cell-size: 46px; --green: #2ecc71; --border: #d0d0d0; }
 
-    body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      margin: 20px;
-      color: #222;
-    }
+    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; margin: 20px; color:#222; }
 
-    header {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px 14px;
-      margin-bottom: 14px;
-    }
+    header { display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; margin-bottom:14px; }
 
     .stats {
-      display: flex;
-      gap: 14px;
-      align-items: center;
-      padding: 10px 12px;
-      border: 1px solid #eee;
-      border-radius: 10px;
-      background: #fafafa;
+      display:flex; gap:14px; align-items:center;
+      padding:10px 12px; border:1px solid #eee; border-radius:10px; background:#fafafa;
     }
-
-    .stat { font-size: 14px; }
-    .stat b { font-size: 16px; }
+    .stat { font-size:14px; }
+    .stat b { font-size:16px; }
 
     button.action {
-      cursor: pointer;
-      border: 1px solid #ccc;
-      background: white;
-      padding: 10px 12px;
-      border-radius: 10px;
-      font-weight: 700;
+      cursor:pointer; border:1px solid #ccc; background:white;
+      padding:10px 12px; border-radius:10px; font-weight:700;
     }
-    button.action:hover { background: #f5f5f5; }
+    button.action:hover { background:#f5f5f5; }
 
-    .status {
-      font-size: 13px;
-      color: #555;
-      padding-left: 4px;
+    .status { font-size:13px; color:#555; padding-left:4px; }
+
+    .boards, .boards-below {
+      display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap;
     }
+    .boards { margin-bottom:14px; }
 
-    /* Top row (Main + Penalty/Referee) */
-    .boards {
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-      flex-wrap: wrap; /* wraps on smaller screens */
-      margin-bottom: 14px;
+    .board {
+      flex:1 1 520px; border:1px solid #eee; border-radius:14px;
+      padding:14px; background:#fff; box-shadow:0 1px 0 rgba(0,0,0,0.03);
     }
 
-    /* Second row (Mirror + Flip) */
-    .boards-below {
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
+    .board-head {
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:10px;
+      margin: 0 0 10px 0;
       flex-wrap: wrap;
     }
 
-    .board {
-      flex: 1 1 520px; /* side-by-side if space; wraps otherwise */
-      border: 1px solid #eee;
-      border-radius: 14px;
-      padding: 14px;
-      background: #fff;
-      box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+    .board-title {
+      margin:0;
+      font-size:16px;
+      display:flex;
+      align-items:baseline;
+      gap:10px;
+      flex-wrap: wrap;
     }
 
-    .board h2 {
-      margin: 0 0 10px 0;
-      font-size: 16px;
+    .mini-stats {
+      font-size:13px;
+      color:#444;
+      padding:4px 8px;
+      border:1px solid #eee;
+      border-radius:999px;
+      background:#fafafa;
+      white-space: nowrap;
     }
+    .mini-stats b { font-size:13px; }
 
-    .grid {
-      display: grid;
-      gap: var(--gap);
-      user-select: none;
-    }
+    .grid { display:grid; gap:var(--gap); user-select:none; }
 
     .cell {
-      width: var(--cell-size);
-      height: var(--cell-size);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #fff;
-      font-weight: 700;
-      font-size: 13px;
-      transition: transform 80ms ease, background 120ms ease, border-color 120ms ease;
-      box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+      width:var(--cell-size); height:var(--cell-size);
+      display:inline-flex; align-items:center; justify-content:center;
+      border:1px solid var(--border); border-radius:10px; background:#fff;
+      font-weight:700; font-size:13px;
+      transition:transform 80ms ease, background 120ms ease, border-color 120ms ease;
+      box-shadow:0 1px 0 rgba(0,0,0,0.03);
     }
+    .cell:active { transform:scale(0.98); }
+    .cell.green { background:var(--green); border-color:#25b864; color:#0b3a1e; }
 
-    .cell:active { transform: scale(0.98); }
-
-    .cell.green {
-      background: var(--green);
-      border-color: #25b864;
-      color: #0b3a1e;
-    }
-
-    footer {
-      margin-top: 12px;
-      font-size: 12px;
-      color: #666;
-    }
+    footer { margin-top:12px; font-size:12px; color:#666; }
 
     @media (max-width: 900px) { :root { --cell-size: 38px; } }
     @media (max-width: 650px) { :root { --cell-size: 32px; --gap: 5px; } }
@@ -141,24 +100,44 @@
 
   <div class="boards">
     <section class="board">
-      <h2>Main Sequences</h2>
+      <div class="board-head">
+        <h2 class="board-title">
+          Main Sequence
+          <span class="mini-stats">Completed: <b id="mainDone">0</b> | Remaining: <b id="mainRem">240</b></span>
+        </h2>
+      </div>
       <div id="mainGrid" class="grid" role="grid" aria-label="Main Sequence grid"></div>
     </section>
 
     <section class="board">
-      <h2>Penalty &amp; Referee Sequences</h2>
+      <div class="board-head">
+        <h2 class="board-title">
+          Penalty &amp; Referee Sequence
+          <span class="mini-stats">Completed: <b id="prDone">0</b> | Remaining: <b id="prRem">51</b></span>
+        </h2>
+      </div>
       <div id="prGrid" class="grid" role="grid" aria-label="Penalty and Referee Sequence grid"></div>
     </section>
   </div>
 
   <div class="boards-below">
     <section class="board">
-      <h2>Mirror Sequences</h2>
+      <div class="board-head">
+        <h2 class="board-title">
+          Mirror Sequences
+          <span class="mini-stats">Completed: <b id="mirrorDone">0</b> | Remaining: <b id="mirrorRem">240</b></span>
+        </h2>
+      </div>
       <div id="mirrorGrid" class="grid" role="grid" aria-label="Mirror Sequences grid"></div>
     </section>
 
     <section class="board">
-      <h2>Flip Sequences</h2>
+      <div class="board-head">
+        <h2 class="board-title">
+          Flip Sequences
+          <span class="mini-stats">Completed: <b id="flipDone">0</b> | Remaining: <b id="flipRem">240</b></span>
+        </h2>
+      </div>
       <div id="flipGrid" class="grid" role="grid" aria-label="Flip Sequences grid"></div>
     </section>
   </div>
@@ -169,11 +148,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import {
-      getFirestore, doc, onSnapshot, runTransaction, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, runTransaction, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    // Using your existing Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBQtfudSJNZb3AyQiNTDfZM0E0LwdEBm1M",
       authDomain: "seq-helper-2026.firebaseapp.com",
@@ -187,29 +164,33 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ---- Configuration ----
-    const MAIN   = { key: "main",   cols: 16, total: 240, start: 1,    title: "Main Sequence" };
-    const MIRROR = { key: "mirror", cols: 16, total: 240, start: 1,    title: "Mirror Sequences" };
-    const FLIP   = { key: "flip",   cols: 16, total: 240, start: 1,    title: "Flip Sequences" };
-    // 1000..1050 inclusive => 51 blocks
-    const PR     = { key: "pr",     cols: 10, total: 51,  start: 1000, title: "Penalty & Referee Sequence" };
+    const MAIN   = { key:"main",   cols:16, total:240, start:1,    title:"Main Sequence" };
+    const MIRROR = { key:"mirror", cols:16, total:240, start:1,    title:"Mirror Sequences" };
+    const FLIP   = { key:"flip",   cols:16, total:240, start:1,    title:"Flip Sequences" };
+    const PR     = { key:"pr",     cols:10, total:51,  start:1000, title:"Penalty & Referee Sequence" };
 
     const ALL = [MAIN, MIRROR, FLIP, PR];
+    const GRAND_TOTAL = ALL.reduce((sum, c) => sum + c.total, 0);
 
-    const GRAND_TOTAL = ALL.reduce((sum, cfg) => sum + cfg.total, 0);
-
-    const trackerDocId = "shared_tracker_v1"; // one shared board for everyone
+    const trackerDocId = "shared_tracker_v1";
     const docRef = doc(db, "trackers", trackerDocId);
 
-    // ---- UI ----
+    // Global stats
     const completedCountEl = document.getElementById("completedCount");
     const remainingCountEl = document.getElementById("remainingCount");
     const totalCountEl = document.getElementById("totalCount");
     const exportTxtBtn = document.getElementById("exportTxtBtn");
     const exportCsvBtn = document.getElementById("exportCsvBtn");
     const syncStatusEl = document.getElementById("syncStatus");
-
     totalCountEl.textContent = String(GRAND_TOTAL);
+
+    // Per-grid mini stats
+    const mini = {
+      main:   { done: document.getElementById("mainDone"),   rem: document.getElementById("mainRem") },
+      pr:     { done: document.getElementById("prDone"),     rem: document.getElementById("prRem") },
+      mirror: { done: document.getElementById("mirrorDone"), rem: document.getElementById("mirrorRem") },
+      flip:   { done: document.getElementById("flipDone"),   rem: document.getElementById("flipRem") },
+    };
 
     const gridEls = {
       main: document.getElementById("mainGrid"),
@@ -218,12 +199,11 @@
       flip: document.getElementById("flipGrid"),
     };
 
-    // In-memory state (synced from Firestore)
-    const sets = {
-      main: new Set(),    // 1..240
-      mirror: new Set(),  // 1..240
-      flip: new Set(),    // 1..240
-      pr: new Set(),      // 1000..1050
+    let sets = {
+      main: new Set(),
+      pr: new Set(),
+      mirror: new Set(),
+      flip: new Set(),
     };
 
     let busy = false;
@@ -232,15 +212,20 @@
       return Array.isArray(arr) ? arr.filter(n => Number.isInteger(n)) : [];
     }
 
-    function updateCumulativeCounts() {
-      const completed =
-        sets.main.size + sets.mirror.size + sets.flip.size + sets.pr.size;
-
+    function updateAllCounts() {
+      // Per-grid
+      for (const cfg of ALL) {
+        const done = sets[cfg.key].size;
+        mini[cfg.key].done.textContent = String(done);
+        mini[cfg.key].rem.textContent = String(cfg.total - done);
+      }
+      // Global
+      const completed = sets.main.size + sets.pr.size + sets.mirror.size + sets.flip.size;
       completedCountEl.textContent = String(completed);
       remainingCountEl.textContent = String(GRAND_TOTAL - completed);
     }
 
-    function buildGridSkeleton(gridEl, cfg, onCellClick) {
+    function buildGridSkeleton(gridEl, cfg) {
       gridEl.style.gridTemplateColumns = `repeat(${cfg.cols}, var(--cell-size))`;
       gridEl.innerHTML = "";
 
@@ -253,9 +238,8 @@
         cell.className = "cell";
         cell.textContent = value;
         cell.setAttribute("role", "gridcell");
-        cell.dataset.value = String(value);
 
-        cell.addEventListener("click", () => onCellClick(cfg.key, value));
+        cell.addEventListener("click", () => toggleInFirestore(cfg.key, value));
 
         frag.appendChild(cell);
       }
@@ -267,7 +251,6 @@
         const value = cfg.start + i;
         const cell = gridEl.children[i];
         const done = set.has(value);
-
         cell.classList.toggle("green", done);
         cell.setAttribute("aria-pressed", done ? "true" : "false");
       }
@@ -290,41 +273,30 @@
 
     function exportTxt() {
       const lines = [];
-
       for (const cfg of ALL) {
         const list = getSorted(sets[cfg.key]);
         lines.push(cfg.title);
         lines.push(...list.map(String));
-        lines.push(""); // blank line between sections
+        lines.push("");
       }
-
-      downloadBlob(
-        new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" }),
-        "sequences.txt"
-      );
+      downloadBlob(new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" }), "sequences.txt");
     }
 
     function exportCsv() {
       const lines = [];
-
       for (const cfg of ALL) {
         const list = getSorted(sets[cfg.key]);
         lines.push(cfg.title);
         lines.push("BlockNumber");
-        lines.push(...list.map(n => String(n)));
-        lines.push(""); // blank line between sections
+        lines.push(...list.map(String));
+        lines.push("");
       }
-
-      downloadBlob(
-        new Blob([lines.join("\r\n") + "\r\n"], { type: "text/csv;charset=utf-8" }),
-        "sequences.csv"
-      );
+      downloadBlob(new Blob([lines.join("\r\n") + "\r\n"], { type: "text/csv;charset=utf-8" }), "sequences.csv");
     }
 
     exportTxtBtn.addEventListener("click", exportTxt);
     exportCsvBtn.addEventListener("click", exportCsv);
 
-    // ---- Click handling (transaction updates one shared doc) ----
     async function toggleInFirestore(whichKey, value) {
       if (busy) return;
       busy = true;
@@ -335,7 +307,6 @@
           const snap = await tx.get(docRef);
           const data = snap.exists() ? snap.data() : {};
 
-          // Field mapping in Firestore doc
           const fields = {
             main: "mainCompleted",
             pr: "prCompleted",
@@ -343,29 +314,36 @@
             flip: "flipCompleted",
           };
 
-          const mSet = new Set(sanitizeIntArray(data[fields.main]));
-          const pSet = new Set(sanitizeIntArray(data[fields.pr]));
-          const mirSet = new Set(sanitizeIntArray(data[fields.mirror]));
-          const fSet = new Set(sanitizeIntArray(data[fields.flip]));
+          const curSets = {
+            main: new Set(sanitizeIntArray(data[fields.main])),
+            pr: new Set(sanitizeIntArray(data[fields.pr])),
+            mirror: new Set(sanitizeIntArray(data[fields.mirror])),
+            flip: new Set(sanitizeIntArray(data[fields.flip])),
+          };
 
-          const target = (k) => ({
-            main: mSet,
-            pr: pSet,
-            mirror: mirSet,
-            flip: fSet
-          })[k];
+          const cfg = ALL.find(c => c.key === whichKey);
+          if (!cfg) return;
 
-          const tSet = target(whichKey);
-          if (!tSet) return;
+          // Keep values inside expected range
+          const min = cfg.start;
+          const maxExclusive = cfg.start + cfg.total;
 
-          if (tSet.has(value)) tSet.delete(value);
-          else tSet.add(value);
+          // Toggle
+          if (curSets[whichKey].has(value)) curSets[whichKey].delete(value);
+          else curSets[whichKey].add(value);
+
+          // Clean any out-of-range junk
+          for (const k of Object.keys(curSets)) {
+            const c = ALL.find(x => x.key === k);
+            const mn = c.start, mx = c.start + c.total;
+            curSets[k] = new Set(Array.from(curSets[k]).filter(n => n >= mn && n < mx));
+          }
 
           tx.set(docRef, {
-            [fields.main]: Array.from(mSet).sort((a,b)=>a-b),
-            [fields.pr]: Array.from(pSet).sort((a,b)=>a-b),
-            [fields.mirror]: Array.from(mirSet).sort((a,b)=>a-b),
-            [fields.flip]: Array.from(fSet).sort((a,b)=>a-b),
+            [fields.main]: Array.from(curSets.main).sort((a,b)=>a-b),
+            [fields.pr]: Array.from(curSets.pr).sort((a,b)=>a-b),
+            [fields.mirror]: Array.from(curSets.mirror).sort((a,b)=>a-b),
+            [fields.flip]: Array.from(curSets.flip).sort((a,b)=>a-b),
             updatedAt: serverTimestamp()
           }, { merge: true });
         });
@@ -377,12 +355,10 @@
       }
     }
 
-    // Build skeleton once
-    for (const cfg of ALL) {
-      buildGridSkeleton(gridEls[cfg.key], cfg, (key, value) => toggleInFirestore(key, value));
-    }
+    // Build all grids
+    for (const cfg of ALL) buildGridSkeleton(gridEls[cfg.key], cfg);
 
-    // ---- Live sync ----
+    // Sync
     syncStatusEl.textContent = "Connecting…";
     onSnapshot(docRef, (snap) => {
       syncStatusEl.textContent = "Synced ✓";
@@ -395,24 +371,24 @@
         flip: "flipCompleted",
       };
 
+      const nextSets = {};
       for (const cfg of ALL) {
         const raw = sanitizeIntArray(data[fieldByKey[cfg.key]]);
         const filtered = raw.filter(n => n >= cfg.start && n < cfg.start + cfg.total);
+        nextSets[cfg.key] = new Set(filtered);
 
-        sets[cfg.key] = new Set(filtered);
+        sets[cfg.key] = nextSets[cfg.key];
         applyStateToGrid(gridEls[cfg.key], sets[cfg.key], cfg);
       }
 
-      updateCumulativeCounts();
+      updateAllCounts();
     }, (err) => {
       console.error(err);
       syncStatusEl.textContent = "Sync error";
       alert("Sync error. Check Firebase config / Firestore rules.");
     });
 
-    // Initial counts
-    updateCumulativeCounts();
+    updateAllCounts();
   </script>
 </body>
 </html>
-
