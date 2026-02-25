@@ -3,98 +3,23 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>15×16 Clickable Grid (1–240)</title>
+  <title>15×16 Grid Tracker (Shared)</title>
   <style>
-    :root {
-      --cols: 16;
-      --rows: 15;
-      --gap: 6px;
-      --cell-size: 46px;
-      --green: #2ecc71;
-      --border: #d0d0d0;
-    }
-
-    body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      margin: 20px;
-      color: #222;
-    }
-
-    header {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 12px 18px;
-      margin-bottom: 14px;
-    }
-
-    .stats {
-      display: flex;
-      gap: 14px;
-      align-items: center;
-      padding: 10px 12px;
-      border: 1px solid #eee;
-      border-radius: 10px;
-      background: #fafafa;
-    }
-
-    .stat {
-      font-size: 14px;
-      line-height: 1.2;
-    }
-
-    .stat b {
-      font-size: 16px;
-    }
-
-    button.action {
-      cursor: pointer;
-      border: 1px solid #ccc;
-      background: white;
-      padding: 10px 12px;
-      border-radius: 10px;
-      font-weight: 700;
-    }
-
-    button.action:hover {
-      background: #f5f5f5;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(var(--cols), var(--cell-size));
-      grid-auto-rows: var(--cell-size);
-      gap: var(--gap);
-      user-select: none;
-    }
-
-    .cell {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #fff;
-      font-weight: 700;
-      font-size: 13px;
-      transition: transform 80ms ease, background 120ms ease, border-color 120ms ease;
-      box-shadow: 0 1px 0 rgba(0,0,0,0.03);
-    }
-
-    .cell:active { transform: scale(0.98); }
-
-    .cell.green {
-      background: var(--green);
-      border-color: #25b864;
-      color: #0b3a1e;
-    }
-
-    footer {
-      margin-top: 12px;
-      font-size: 12px;
-      color: #666;
-    }
-
+    :root { --cols: 16; --gap: 6px; --cell-size: 46px; --green: #2ecc71; --border:#d0d0d0; }
+    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; margin:20px; color:#222; }
+    header { display:flex; flex-wrap:wrap; align-items:center; gap:12px 18px; margin-bottom:14px; }
+    .stats { display:flex; gap:14px; align-items:center; padding:10px 12px; border:1px solid #eee; border-radius:10px; background:#fafafa; }
+    .stat { font-size:14px; }
+    .stat b { font-size:16px; }
+    button.action { cursor:pointer; border:1px solid #ccc; background:white; padding:10px 12px; border-radius:10px; font-weight:700; }
+    button.action:hover { background:#f5f5f5; }
+    .status { font-size:13px; color:#555; }
+    .grid { display:grid; grid-template-columns:repeat(var(--cols), var(--cell-size)); grid-auto-rows:var(--cell-size); gap:var(--gap); user-select:none; }
+    .cell { display:flex; align-items:center; justify-content:center; border:1px solid var(--border); border-radius:10px; background:#fff; font-weight:700; font-size:13px;
+            transition:transform 80ms ease, background 120ms ease, border-color 120ms ease; box-shadow:0 1px 0 rgba(0,0,0,0.03); }
+    .cell:active { transform:scale(0.98); }
+    .cell.green { background:var(--green); border-color:#25b864; color:#0b3a1e; }
+    footer { margin-top:12px; font-size:12px; color:#666; }
     @media (max-width: 900px) { :root { --cell-size: 38px; } }
     @media (max-width: 650px) { :root { --cell-size: 32px; --gap: 5px; } }
   </style>
@@ -109,6 +34,8 @@
 
     <button class="action" id="exportTxtBtn" type="button">Export Completed (.txt)</button>
     <button class="action" id="exportCsvBtn" type="button">Export Completed (.csv / Excel)</button>
+
+    <span class="status" id="syncStatus">Connecting…</span>
   </header>
 
   <main>
@@ -116,119 +43,157 @@
   </main>
 
   <footer>
-    State is saved locally in your browser (localStorage). Close/reopen and it will restore.
+    Shared mode: updates are synced for everyone using the same page.
   </footer>
 
-  <script>
-    (function () {
-      const ROWS = 15;
-      const COLS = 16;
-      const TOTAL = ROWS * COLS;
-      const STORAGE_KEY = "grid_15x16_completed_v2";
+  <!-- Firebase (v10) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getFirestore, doc, onSnapshot, runTransaction, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-      const gridEl = document.getElementById("grid");
-      const completedCountEl = document.getElementById("completedCount");
-      const remainingCountEl = document.getElementById("remainingCount");
-      const exportTxtBtn = document.getElementById("exportTxtBtn");
-      const exportCsvBtn = document.getElementById("exportCsvBtn");
+    // TODO: PASTE YOUR firebaseConfig HERE
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQtfudSJNZb3AyQiNTDfZM0E0LwdEBm1M",
+    authDomain: "seq-helper-2026.firebaseapp.com",
+    projectId: "seq-helper-2026",
+    storageBucket: "seq-helper-2026.firebasestorage.app",
+    messagingSenderId: "724035616020",
+    appId: "1:724035616020:web:bb31393c2bec91ca955601",
+    measurementId: "G-YDCLDEBSYF"
+    };
 
-      function loadState() {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (!raw) return new Set();
-          const arr = JSON.parse(raw);
-          if (!Array.isArray(arr)) return new Set();
-          return new Set(arr.filter(n => Number.isInteger(n) && n >= 1 && n <= TOTAL));
-        } catch {
-          return new Set();
-        }
-      }
+    const ROWS = 15;
+    const COLS = 16;
+    const TOTAL = ROWS * COLS;
 
-      function saveState(completedSet) {
-        const arr = Array.from(completedSet).sort((a, b) => a - b);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-      }
+    // All browsers share this one document:
+    // You can change trackerId to create separate boards (e.g., "teamA", "projectX")
+    const trackerId = "default";
+    const docPath = doc(getFirestore(initializeApp(firebaseConfig)), "trackers", trackerId);
 
-      function updateCounts(completedSet) {
-        const completed = completedSet.size;
-        const remaining = TOTAL - completed;
-        completedCountEl.textContent = String(completed);
-        remainingCountEl.textContent = String(remaining);
-      }
+    const gridEl = document.getElementById("grid");
+    const completedCountEl = document.getElementById("completedCount");
+    const remainingCountEl = document.getElementById("remainingCount");
+    const exportTxtBtn = document.getElementById("exportTxtBtn");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+    const syncStatusEl = document.getElementById("syncStatus");
 
-      function buildGrid(completedSet) {
-        gridEl.style.setProperty("--cols", COLS);
+    gridEl.style.setProperty("--cols", COLS);
+
+    // Local in-memory set (rendered state)
+    let completedSet = new Set();
+    // Avoid double-render while click is in-flight
+    let busy = false;
+
+    function updateCounts() {
+      const completed = completedSet.size;
+      completedCountEl.textContent = String(completed);
+      remainingCountEl.textContent = String(TOTAL - completed);
+    }
+
+    function renderGrid() {
+      // Build once and just toggle classes
+      if (gridEl.childElementCount !== TOTAL) {
         gridEl.innerHTML = "";
-
         const frag = document.createDocumentFragment();
-
         for (let i = 1; i <= TOTAL; i++) {
           const cell = document.createElement("button");
           cell.type = "button";
-          cell.className = "cell" + (completedSet.has(i) ? " green" : "");
+          cell.className = "cell";
           cell.textContent = i;
           cell.setAttribute("role", "gridcell");
-          cell.setAttribute("aria-pressed", completedSet.has(i) ? "true" : "false");
           cell.dataset.index = String(i);
 
-          cell.addEventListener("click", () => {
+          cell.addEventListener("click", async () => {
+            if (busy) return;
             const idx = Number(cell.dataset.index);
-            if (completedSet.has(idx)) {
-              completedSet.delete(idx);
-              cell.classList.remove("green");
-              cell.setAttribute("aria-pressed", "false");
-            } else {
-              completedSet.add(idx);
-              cell.classList.add("green");
-              cell.setAttribute("aria-pressed", "true");
+            busy = true;
+            syncStatusEl.textContent = "Saving…";
+
+            try {
+              await runTransaction(docPath.firestore, async (tx) => {
+                const snap = await tx.get(docPath);
+                const data = snap.exists() ? snap.data() : {};
+                const arr = Array.isArray(data.completed) ? data.completed : [];
+                const set = new Set(arr.filter(n => Number.isInteger(n) && n >= 1 && n <= TOTAL));
+
+                if (set.has(idx)) set.delete(idx);
+                else set.add(idx);
+
+                const next = Array.from(set).sort((a,b)=>a-b);
+                tx.set(docPath, { completed: next, updatedAt: serverTimestamp() }, { merge: true });
+              });
+              // Snapshot listener will update UI for everyone (including this browser)
+            } catch (e) {
+              console.error(e);
+              alert("Failed to save. Check Firebase config / rules.");
+            } finally {
+              busy = false;
             }
-            updateCounts(completedSet);
-            saveState(completedSet);
           });
 
           frag.appendChild(cell);
         }
-
         gridEl.appendChild(frag);
       }
 
-      function downloadBlob(blob, filename) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
+      // Apply state
+      for (let i = 1; i <= TOTAL; i++) {
+        const cell = gridEl.children[i - 1];
+        const isDone = completedSet.has(i);
+        cell.classList.toggle("green", isDone);
+        cell.setAttribute("aria-pressed", isDone ? "true" : "false");
       }
 
-      function getCompletedList(completedSet) {
-        return Array.from(completedSet).sort((a, b) => a - b);
-      }
+      updateCounts();
+    }
 
-      exportTxtBtn.addEventListener("click", () => {
-        const list = getCompletedList(completedSet);
-        const content = list.length ? list.join("\n") + "\n" : "";
-        const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-        downloadBlob(blob, "completed_blocks.txt");
-      });
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
 
-      exportCsvBtn.addEventListener("click", () => {
-        // Simple CSV that Excel opens nicely.
-        // Column: BlockNumber
-        const list = getCompletedList(completedSet);
-        const lines = ["BlockNumber", ...list.map(n => String(n))];
-        const csv = lines.join("\r\n") + "\r\n";
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-        downloadBlob(blob, "completed_blocks.csv");
-      });
+    function getCompletedList() {
+      return Array.from(completedSet).sort((a, b) => a - b);
+    }
 
-      // Init
-      const completedSet = loadState();
-      buildGrid(completedSet);
-      updateCounts(completedSet);
-    })();
+    exportTxtBtn.addEventListener("click", () => {
+      const list = getCompletedList();
+      const content = list.length ? list.join("\n") + "\n" : "";
+      downloadBlob(new Blob([content], { type: "text/plain;charset=utf-8" }), "completed_blocks.txt");
+    });
+
+    exportCsvBtn.addEventListener("click", () => {
+      const list = getCompletedList();
+      const lines = ["BlockNumber", ...list.map(String)];
+      const csv = lines.join("\r\n") + "\r\n";
+      downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), "completed_blocks.csv");
+    });
+
+    // Live sync
+    syncStatusEl.textContent = "Connecting…";
+    onSnapshot(docPath, (snap) => {
+      syncStatusEl.textContent = "Synced ✓";
+      const data = snap.exists() ? snap.data() : {};
+      const arr = Array.isArray(data.completed) ? data.completed : [];
+      completedSet = new Set(arr.filter(n => Number.isInteger(n) && n >= 1 && n <= TOTAL));
+      renderGrid();
+    }, (err) => {
+      console.error(err);
+      syncStatusEl.textContent = "Sync error";
+      alert("Sync error. Check Firebase config / Firestore rules.");
+    });
+
+    // First render skeleton
+    renderGrid();
   </script>
 </body>
 </html>
