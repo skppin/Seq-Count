@@ -167,7 +167,7 @@
     const MAIN   = { key:"main",   cols:16, total:240, start:1,    title:"Main Sequence" };
     const MIRROR = { key:"mirror", cols:16, total:240, start:1,    title:"Mirror Sequences" };
     const FLIP   = { key:"flip",   cols:16, total:240, start:1,    title:"Flip Sequences" };
-    const PR     = { key:"pr",     cols:10, total:51,  start:1000, title:"Penalty & Referee Sequence" };
+    const PR     = { key:"pr", cols:10, total:50,  start:1001, title:"Penalty & Referee Sequence" };
 
     const ALL = [MAIN, MIRROR, FLIP, PR];
     const GRAND_TOTAL = ALL.reduce((sum, c) => sum + c.total, 0);
@@ -392,3 +392,4 @@
   </script>
 </body>
 </html>
+
