@@ -26,9 +26,7 @@
 
     .status { font-size:13px; color:#555; padding-left:4px; }
 
-    .boards, .boards-below {
-      display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap;
-    }
+    .boards, .boards-below { display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap; }
     .boards { margin-bottom:14px; }
 
     .board {
@@ -36,31 +34,14 @@
       padding:14px; background:#fff; box-shadow:0 1px 0 rgba(0,0,0,0.03);
     }
 
-    .board-head {
-      display:flex;
-      align-items:baseline;
-      justify-content:space-between;
-      gap:10px;
-      margin: 0 0 10px 0;
-      flex-wrap: wrap;
-    }
-
     .board-title {
-      margin:0;
-      font-size:16px;
-      display:flex;
-      align-items:baseline;
-      gap:10px;
-      flex-wrap: wrap;
+      margin:0 0 10px 0; font-size:16px;
+      display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
     }
 
     .mini-stats {
-      font-size:13px;
-      color:#444;
-      padding:4px 8px;
-      border:1px solid #eee;
-      border-radius:999px;
-      background:#fafafa;
+      font-size:13px; color:#444;
+      padding:4px 8px; border:1px solid #eee; border-radius:999px; background:#fafafa;
       white-space: nowrap;
     }
     .mini-stats b { font-size:13px; }
@@ -95,62 +76,63 @@
 
     <button class="action" id="exportTxtBtn" type="button">Export (.txt)</button>
     <button class="action" id="exportCsvBtn" type="button">Export (.csv / Excel)</button>
+
+    <button class="action" id="loginBtn" type="button">Login</button>
+    <button class="action" id="logoutBtn" type="button">Logout</button>
+
+    <span class="status" id="userStatus">Not logged in</span>
     <span class="status" id="syncStatus">Connecting…</span>
   </header>
 
   <div class="boards">
     <section class="board">
-      <div class="board-head">
-        <h2 class="board-title">
-          Main Sequence
-          <span class="mini-stats">Completed: <b id="mainDone">0</b> | Remaining: <b id="mainRem">240</b></span>
-        </h2>
-      </div>
+      <h2 class="board-title">
+        Main Sequence
+        <span class="mini-stats">Completed: <b id="mainDone">0</b> | Remaining: <b id="mainRem">240</b></span>
+      </h2>
       <div id="mainGrid" class="grid" role="grid" aria-label="Main Sequence grid"></div>
     </section>
 
     <section class="board">
-      <div class="board-head">
-        <h2 class="board-title">
-          Penalty &amp; Referee Sequence
-          <span class="mini-stats">Completed: <b id="prDone">0</b> | Remaining: <b id="prRem">51</b></span>
-        </h2>
-      </div>
+      <h2 class="board-title">
+        Penalty &amp; Referee Sequence
+        <span class="mini-stats">Completed: <b id="prDone">0</b> | Remaining: <b id="prRem">50</b></span>
+      </h2>
       <div id="prGrid" class="grid" role="grid" aria-label="Penalty and Referee Sequence grid"></div>
     </section>
   </div>
 
   <div class="boards-below">
     <section class="board">
-      <div class="board-head">
-        <h2 class="board-title">
-          Mirror Sequences
-          <span class="mini-stats">Completed: <b id="mirrorDone">0</b> | Remaining: <b id="mirrorRem">240</b></span>
-        </h2>
-      </div>
+      <h2 class="board-title">
+        Mirror Sequences
+        <span class="mini-stats">Completed: <b id="mirrorDone">0</b> | Remaining: <b id="mirrorRem">240</b></span>
+      </h2>
       <div id="mirrorGrid" class="grid" role="grid" aria-label="Mirror Sequences grid"></div>
     </section>
 
     <section class="board">
-      <div class="board-head">
-        <h2 class="board-title">
-          Flip Sequences
-          <span class="mini-stats">Completed: <b id="flipDone">0</b> | Remaining: <b id="flipRem">240</b></span>
-        </h2>
-      </div>
+      <h2 class="board-title">
+        Flip Sequences
+        <span class="mini-stats">Completed: <b id="flipDone">0</b> | Remaining: <b id="flipRem">240</b></span>
+      </h2>
       <div id="flipGrid" class="grid" role="grid" aria-label="Flip Sequences grid"></div>
     </section>
   </div>
 
   <footer>
-    Shared mode: updates sync for everyone using the same page (Firebase Firestore).
+    View for everyone. Edit only for you (enforced by Firestore Security Rules).
   </footer>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import { getFirestore, doc, onSnapshot, runTransaction, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import {
+      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
+    // ---- Firebase config (yours) ----
     const firebaseConfig = {
       apiKey: "AIzaSyBQtfudSJNZb3AyQiNTDfZM0E0LwdEBm1M",
       authDomain: "seq-helper-2026.firebaseapp.com",
@@ -161,30 +143,38 @@
       measurementId: "G-YDCLDEBSYF"
     };
 
+    // ---- Init ----
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // ---- Config: sequences ----
     const MAIN   = { key:"main",   cols:16, total:240, start:1,    title:"Main Sequence" };
     const MIRROR = { key:"mirror", cols:16, total:240, start:1,    title:"Mirror Sequences" };
     const FLIP   = { key:"flip",   cols:16, total:240, start:1,    title:"Flip Sequences" };
-    const PR     = { key:"pr", cols:10, total:50,  start:1001, title:"Penalty & Referee Sequence" };
+    // 1001..1050 inclusive => 50
+    const PR     = { key:"pr",     cols:10, total:50,  start:1001, title:"Penalty & Referee Sequence" };
 
     const ALL = [MAIN, MIRROR, FLIP, PR];
     const GRAND_TOTAL = ALL.reduce((sum, c) => sum + c.total, 0);
 
+    // ---- Firestore doc ----
     const trackerDocId = "shared_tracker_v1";
     const docRef = doc(db, "trackers", trackerDocId);
 
-    // Global stats
+    // ---- UI ----
     const completedCountEl = document.getElementById("completedCount");
     const remainingCountEl = document.getElementById("remainingCount");
     const totalCountEl = document.getElementById("totalCount");
     const exportTxtBtn = document.getElementById("exportTxtBtn");
     const exportCsvBtn = document.getElementById("exportCsvBtn");
     const syncStatusEl = document.getElementById("syncStatus");
+    const userStatusEl = document.getElementById("userStatus");
+
     totalCountEl.textContent = String(GRAND_TOTAL);
 
-    // Per-grid mini stats
     const mini = {
       main:   { done: document.getElementById("mainDone"),   rem: document.getElementById("mainRem") },
       pr:     { done: document.getElementById("prDone"),     rem: document.getElementById("prRem") },
@@ -199,13 +189,34 @@
       flip: document.getElementById("flipGrid"),
     };
 
-    let sets = {
-      main: new Set(),
-      pr: new Set(),
-      mirror: new Set(),
-      flip: new Set(),
-    };
+    // ---- Auth state ----
+    let canEdit = false;
+    let currentUser = null;
 
+    async function login() {
+      await signInWithPopup(auth, provider);
+    }
+    async function logout() {
+      await signOut(auth);
+    }
+
+    document.getElementById("loginBtn").addEventListener("click", login);
+    document.getElementById("logoutBtn").addEventListener("click", logout);
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      if (user) {
+        canEdit = true; // actual permission is enforced by Firestore rules
+        userStatusEl.textContent = `Logged in: ${user.email}`;
+        console.log("✅ UID:", user.uid); // copy this UID into Firestore rules
+      } else {
+        canEdit = false;
+        userStatusEl.textContent = "Not logged in";
+      }
+    });
+
+    // ---- State ----
+    let sets = { main:new Set(), pr:new Set(), mirror:new Set(), flip:new Set() };
     let busy = false;
 
     function sanitizeIntArray(arr) {
@@ -213,13 +224,11 @@
     }
 
     function updateAllCounts() {
-      // Per-grid
       for (const cfg of ALL) {
         const done = sets[cfg.key].size;
         mini[cfg.key].done.textContent = String(done);
         mini[cfg.key].rem.textContent = String(cfg.total - done);
       }
-      // Global
       const completed = sets.main.size + sets.pr.size + sets.mirror.size + sets.flip.size;
       completedCountEl.textContent = String(completed);
       remainingCountEl.textContent = String(GRAND_TOTAL - completed);
@@ -298,7 +307,12 @@
     exportCsvBtn.addEventListener("click", exportCsv);
 
     async function toggleInFirestore(whichKey, value) {
+      if (!canEdit) {
+        alert("Please login to edit.");
+        return;
+      }
       if (busy) return;
+
       busy = true;
       syncStatusEl.textContent = "Saving…";
 
@@ -321,22 +335,14 @@
             flip: new Set(sanitizeIntArray(data[fields.flip])),
           };
 
-          const cfg = ALL.find(c => c.key === whichKey);
-          if (!cfg) return;
-
-          // Keep values inside expected range
-          const min = cfg.start;
-          const maxExclusive = cfg.start + cfg.total;
-
           // Toggle
           if (curSets[whichKey].has(value)) curSets[whichKey].delete(value);
           else curSets[whichKey].add(value);
 
-          // Clean any out-of-range junk
-          for (const k of Object.keys(curSets)) {
-            const c = ALL.find(x => x.key === k);
-            const mn = c.start, mx = c.start + c.total;
-            curSets[k] = new Set(Array.from(curSets[k]).filter(n => n >= mn && n < mx));
+          // Clean to expected ranges
+          for (const cfg of ALL) {
+            const mn = cfg.start, mx = cfg.start + cfg.total;
+            curSets[cfg.key] = new Set(Array.from(curSets[cfg.key]).filter(n => n >= mn && n < mx));
           }
 
           tx.set(docRef, {
@@ -348,8 +354,8 @@
           }, { merge: true });
         });
       } catch (e) {
-        console.error(e);
-        alert("Failed to save. Check Firebase config / Firestore rules.");
+        console.error("SAVE FAILED:", e);
+        alert(`Failed to save.\n\nCode: ${e.code || "unknown"}\nMessage: ${e.message || e}`);
       } finally {
         busy = false;
       }
@@ -371,27 +377,21 @@
         flip: "flipCompleted",
       };
 
-      const nextSets = {};
       for (const cfg of ALL) {
         const raw = sanitizeIntArray(data[fieldByKey[cfg.key]]);
         const filtered = raw.filter(n => n >= cfg.start && n < cfg.start + cfg.total);
-        nextSets[cfg.key] = new Set(filtered);
-
-        sets[cfg.key] = nextSets[cfg.key];
+        sets[cfg.key] = new Set(filtered);
         applyStateToGrid(gridEls[cfg.key], sets[cfg.key], cfg);
       }
 
       updateAllCounts();
     }, (err) => {
-      console.error(err);
+      console.error("SYNC ERROR:", err);
       syncStatusEl.textContent = "Sync error";
-      alert("Sync error. Check Firebase config / Firestore rules.");
+      alert(`Sync error.\n\nCode: ${err.code || "unknown"}\nMessage: ${err.message || err}`);
     });
 
     updateAllCounts();
   </script>
 </body>
 </html>
-
-
-
