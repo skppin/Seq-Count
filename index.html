@@ -3,217 +3,403 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>15×16 Clickable Grid (1–240)</title>
+  <title>Seq Completion Tracker</title>
   <style>
-    :root {
-      --cols: 16;
-      --rows: 15;
-      --gap: 6px;
-      --cell-size: 46px; /* adjust if you want larger/smaller tiles */
-      --green: #2ecc71;
-      --border: #d0d0d0;
-    }
+    :root { --gap: 6px; --cell-size: 46px; --green: #2ecc71; --border: #d0d0d0; }
 
-    body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      margin: 20px;
-      color: #222;
-    }
+    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; margin: 20px; color:#222; }
 
-    header {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 12px 18px;
-      margin-bottom: 14px;
-    }
+    header { display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; margin-bottom:14px; }
 
     .stats {
-      display: flex;
-      gap: 14px;
-      align-items: center;
-      padding: 10px 12px;
-      border: 1px solid #eee;
-      border-radius: 10px;
-      background: #fafafa;
+      display:flex; gap:14px; align-items:center;
+      padding:10px 12px; border:1px solid #eee; border-radius:10px; background:#fafafa;
+    }
+    .stat { font-size:14px; }
+    .stat b { font-size:16px; }
+
+    button.action {
+      cursor:pointer; border:1px solid #ccc; background:white;
+      padding:10px 12px; border-radius:10px; font-weight:700;
+    }
+    button.action:hover { background:#f5f5f5; }
+
+    .status { font-size:13px; color:#555; padding-left:4px; }
+
+    .boards, .boards-below { display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap; }
+    .boards { margin-bottom:14px; }
+
+    .board {
+      flex:1 1 520px; border:1px solid #eee; border-radius:14px;
+      padding:14px; background:#fff; box-shadow:0 1px 0 rgba(0,0,0,0.03);
     }
 
-    .stat {
-      font-size: 14px;
-      line-height: 1.2;
+    .board-title {
+      margin:0 0 10px 0; font-size:16px;
+      display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
     }
 
-    .stat b {
-      font-size: 16px;
+    .mini-stats {
+      font-size:13px; color:#444;
+      padding:4px 8px; border:1px solid #eee; border-radius:999px; background:#fafafa;
+      white-space: nowrap;
     }
+    .mini-stats b { font-size:13px; }
 
-    button {
-      cursor: pointer;
-      border: 1px solid #ccc;
-      background: white;
-      padding: 10px 12px;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-
-    button:hover {
-      background: #f5f5f5;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(var(--cols), var(--cell-size));
-      grid-auto-rows: var(--cell-size);
-      gap: var(--gap);
-      user-select: none;
-    }
+    .grid { display:grid; gap:var(--gap); user-select:none; }
 
     .cell {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #fff;
-      font-weight: 700;
-      font-size: 13px;
-      transition: transform 80ms ease, background 120ms ease, border-color 120ms ease;
-      box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+      width:var(--cell-size); height:var(--cell-size);
+      display:inline-flex; align-items:center; justify-content:center;
+      border:1px solid var(--border); border-radius:10px; background:#fff;
+      font-weight:700; font-size:13px;
+      transition:transform 80ms ease, background 120ms ease, border-color 120ms ease;
+      box-shadow:0 1px 0 rgba(0,0,0,0.03);
     }
+    .cell:active { transform:scale(0.98); }
+    .cell.green { background:var(--green); border-color:#25b864; color:#0b3a1e; }
 
-    .cell:active {
-      transform: scale(0.98);
-    }
+    footer { margin-top:12px; font-size:12px; color:#666; }
 
-    .cell.green {
-      background: var(--green);
-      border-color: #25b864;
-      color: #0b3a1e;
-    }
-
-    footer {
-      margin-top: 12px;
-      font-size: 12px;
-      color: #666;
-    }
-
-    @media (max-width: 900px) {
-      :root { --cell-size: 38px; }
-    }
-    @media (max-width: 650px) {
-      :root { --cell-size: 32px; --gap: 5px; }
-    }
+    @media (max-width: 900px) { :root { --cell-size: 38px; } }
+    @media (max-width: 650px) { :root { --cell-size: 32px; --gap: 5px; } }
   </style>
 </head>
+
 <body>
   <header>
     <div class="stats" aria-live="polite">
-      <div class="stat">Green: <b id="greenCount">0</b></div>
-      <div class="stat">White: <b id="whiteCount">240</b></div>
-      <div class="stat">Total: <b>240</b></div>
+      <div class="stat">Completed: <b id="completedCount">0</b></div>
+      <div class="stat">Remaining: <b id="remainingCount">0</b></div>
+      <div class="stat">Total: <b id="totalCount">0</b></div>
     </div>
 
-    <button id="resetBtn" type="button">Reset</button>
+    <button class="action" id="exportTxtBtn" type="button">Export (.txt)</button>
+    <button class="action" id="exportCsvBtn" type="button">Export (.csv / Excel)</button>
+
+    <!-- Single toggle auth button -->
+    <button class="action" id="authBtn" type="button">Login</button>
+
+    <span class="status" id="userStatus">Not logged in</span>
+    <span class="status" id="syncStatus">Connecting…</span>
   </header>
 
-  <main>
-    <div id="grid" class="grid" role="grid" aria-label="15 by 16 clickable grid"></div>
-  </main>
+  <div class="boards">
+    <section class="board">
+      <h2 class="board-title">
+        Main Sequence
+        <span class="mini-stats">Completed: <b id="mainDone">0</b> | Remaining: <b id="mainRem">240</b></span>
+      </h2>
+      <div id="mainGrid" class="grid" role="grid" aria-label="Main Sequence grid"></div>
+    </section>
+
+    <section class="board">
+      <h2 class="board-title">
+        Penalty &amp; Referee Sequence
+        <span class="mini-stats">Completed: <b id="prDone">0</b> | Remaining: <b id="prRem">50</b></span>
+      </h2>
+      <div id="prGrid" class="grid" role="grid" aria-label="Penalty and Referee Sequence grid"></div>
+    </section>
+  </div>
+
+  <div class="boards-below">
+    <section class="board">
+      <h2 class="board-title">
+        Mirror Sequences
+        <span class="mini-stats">Completed: <b id="mirrorDone">0</b> | Remaining: <b id="mirrorRem">240</b></span>
+      </h2>
+      <div id="mirrorGrid" class="grid" role="grid" aria-label="Mirror Sequences grid"></div>
+    </section>
+
+    <section class="board">
+      <h2 class="board-title">
+        Flip Sequences
+        <span class="mini-stats">Completed: <b id="flipDone">0</b> | Remaining: <b id="flipRem">240</b></span>
+      </h2>
+      <div id="flipGrid" class="grid" role="grid" aria-label="Flip Sequences grid"></div>
+    </section>
+  </div>
 
   <footer>
-    State is saved locally in your browser (localStorage). Close/reopen and it will restore.
+    View for everyone. Edit only for you (enforced by Firestore Security Rules).
   </footer>
 
-  <script>
-    (function () {
-      const ROWS = 15;
-      const COLS = 16;
-      const TOTAL = ROWS * COLS;
-      const STORAGE_KEY = "grid_15x16_green_v1";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, runTransaction, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import {
+      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-      const gridEl = document.getElementById("grid");
-      const greenCountEl = document.getElementById("greenCount");
-      const whiteCountEl = document.getElementById("whiteCount");
-      const resetBtn = document.getElementById("resetBtn");
+    // ---- Firebase config (yours) ----
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQtfudSJNZb3AyQiNTDfZM0E0LwdEBm1M",
+      authDomain: "seq-helper-2026.firebaseapp.com",
+      projectId: "seq-helper-2026",
+      storageBucket: "seq-helper-2026.firebasestorage.app",
+      messagingSenderId: "724035616020",
+      appId: "1:724035616020:web:bb31393c2bec91ca955601",
+      measurementId: "G-YDCLDEBSYF"
+    };
 
-      // Load saved state: store green cells as an array of numbers (1..240)
-      function loadState() {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (!raw) return new Set();
-          const arr = JSON.parse(raw);
-          if (!Array.isArray(arr)) return new Set();
-          return new Set(arr.filter(n => Number.isInteger(n) && n >= 1 && n <= TOTAL));
-        } catch {
-          return new Set();
+    // ---- Init ----
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ---- Auth (toggle button) ----
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    const authBtn = document.getElementById("authBtn");
+    const userStatusEl = document.getElementById("userStatus");
+
+    let canEdit = false;
+    let currentUser = null;
+
+    authBtn.addEventListener("click", async () => {
+      try {
+        if (currentUser) {
+          await signOut(auth);
+        } else {
+          await signInWithPopup(auth, provider);
         }
+      } catch (e) {
+        console.error("AUTH ERROR:", e);
+        alert(`Auth error.\n\nCode: ${e.code || "unknown"}\nMessage: ${e.message || e}`);
       }
+    });
 
-      function saveState(greenSet) {
-        const arr = Array.from(greenSet).sort((a, b) => a - b);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+
+      if (user) {
+        canEdit = true; // enforced by Firestore Rules too
+        authBtn.textContent = "Logout";
+        userStatusEl.textContent = `Logged in: ${user.email}`;
+        console.log("🔥 YOUR UID:", user.uid); // copy into Firestore rules
+      } else {
+        canEdit = false;
+        authBtn.textContent = "Login";
+        userStatusEl.textContent = "Not logged in";
       }
+    });
 
-      function updateCounts(greenSet) {
-        const green = greenSet.size;
-        const white = TOTAL - green;
-        greenCountEl.textContent = String(green);
-        whiteCountEl.textContent = String(white);
+    // ---- Config: sequences ----
+    const MAIN   = { key:"main",   cols:16, total:240, start:1,    title:"Main Sequence" };
+    const MIRROR = { key:"mirror", cols:16, total:240, start:1,    title:"Mirror Sequences" };
+    const FLIP   = { key:"flip",   cols:16, total:240, start:1,    title:"Flip Sequences" };
+    // 1001..1050 inclusive => 50
+    const PR     = { key:"pr",     cols:10, total:50,  start:1001, title:"Penalty & Referee Sequence" };
+
+    const ALL = [MAIN, MIRROR, FLIP, PR];
+    const GRAND_TOTAL = ALL.reduce((sum, c) => sum + c.total, 0);
+
+    // ---- Firestore doc ----
+    const trackerDocId = "shared_tracker_v1";
+    const docRef = doc(db, "trackers", trackerDocId);
+
+    // ---- UI ----
+    const completedCountEl = document.getElementById("completedCount");
+    const remainingCountEl = document.getElementById("remainingCount");
+    const totalCountEl = document.getElementById("totalCount");
+    const exportTxtBtn = document.getElementById("exportTxtBtn");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+    const syncStatusEl = document.getElementById("syncStatus");
+
+    totalCountEl.textContent = String(GRAND_TOTAL);
+
+    const mini = {
+      main:   { done: document.getElementById("mainDone"),   rem: document.getElementById("mainRem") },
+      pr:     { done: document.getElementById("prDone"),     rem: document.getElementById("prRem") },
+      mirror: { done: document.getElementById("mirrorDone"), rem: document.getElementById("mirrorRem") },
+      flip:   { done: document.getElementById("flipDone"),   rem: document.getElementById("flipRem") },
+    };
+
+    const gridEls = {
+      main: document.getElementById("mainGrid"),
+      pr: document.getElementById("prGrid"),
+      mirror: document.getElementById("mirrorGrid"),
+      flip: document.getElementById("flipGrid"),
+    };
+
+    // ---- State ----
+    let sets = { main:new Set(), pr:new Set(), mirror:new Set(), flip:new Set() };
+    let busy = false;
+
+    function sanitizeIntArray(arr) {
+      return Array.isArray(arr) ? arr.filter(n => Number.isInteger(n)) : [];
+    }
+
+    function updateAllCounts() {
+      for (const cfg of ALL) {
+        const done = sets[cfg.key].size;
+        mini[cfg.key].done.textContent = String(done);
+        mini[cfg.key].rem.textContent = String(cfg.total - done);
       }
+      const completed = sets.main.size + sets.pr.size + sets.mirror.size + sets.flip.size;
+      completedCountEl.textContent = String(completed);
+      remainingCountEl.textContent = String(GRAND_TOTAL - completed);
+    }
 
-      function buildGrid(greenSet) {
-        gridEl.style.setProperty("--cols", COLS);
-        // Clear existing
-        gridEl.innerHTML = "";
+    function buildGridSkeleton(gridEl, cfg) {
+      gridEl.style.gridTemplateColumns = `repeat(${cfg.cols}, var(--cell-size))`;
+      gridEl.innerHTML = "";
 
-        const frag = document.createDocumentFragment();
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < cfg.total; i++) {
+        const value = cfg.start + i;
 
-        for (let i = 1; i <= TOTAL; i++) {
-          const cell = document.createElement("button");
-          cell.type = "button";
-          cell.className = "cell" + (greenSet.has(i) ? " green" : "");
-          cell.textContent = i;
-          cell.setAttribute("role", "gridcell");
-          cell.setAttribute("aria-pressed", greenSet.has(i) ? "true" : "false");
-          cell.dataset.index = String(i);
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "cell";
+        cell.textContent = value;
+        cell.setAttribute("role", "gridcell");
 
-          cell.addEventListener("click", () => {
-            const idx = Number(cell.dataset.index);
-            if (greenSet.has(idx)) {
-              greenSet.delete(idx);
-              cell.classList.remove("green");
-              cell.setAttribute("aria-pressed", "false");
-            } else {
-              greenSet.add(idx);
-              cell.classList.add("green");
-              cell.setAttribute("aria-pressed", "true");
-            }
-            updateCounts(greenSet);
-            saveState(greenSet);
-          });
+        cell.addEventListener("click", () => toggleInFirestore(cfg.key, value));
 
-          frag.appendChild(cell);
-        }
-
-        gridEl.appendChild(frag);
+        frag.appendChild(cell);
       }
+      gridEl.appendChild(frag);
+    }
 
-      // Init
-      const greenSet = loadState();
-      buildGrid(greenSet);
-      updateCounts(greenSet);
+    function applyStateToGrid(gridEl, set, cfg) {
+      for (let i = 0; i < cfg.total; i++) {
+        const value = cfg.start + i;
+        const cell = gridEl.children[i];
+        const done = set.has(value);
+        cell.classList.toggle("green", done);
+        cell.setAttribute("aria-pressed", done ? "true" : "false");
+      }
+    }
 
-      resetBtn.addEventListener("click", () => {
-        greenSet.clear();
-        localStorage.removeItem(STORAGE_KEY);
-        // Update UI quickly
-        document.querySelectorAll(".cell.green").forEach(el => {
-          el.classList.remove("green");
-          el.setAttribute("aria-pressed", "false");
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function getSorted(set) {
+      return Array.from(set).sort((a, b) => a - b);
+    }
+
+    function exportTxt() {
+      const lines = [];
+      for (const cfg of ALL) {
+        const list = getSorted(sets[cfg.key]);
+        lines.push(cfg.title);
+        lines.push(...list.map(String));
+        lines.push("");
+      }
+      downloadBlob(new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" }), "sequences.txt");
+    }
+
+    function exportCsv() {
+      const lines = [];
+      for (const cfg of ALL) {
+        const list = getSorted(sets[cfg.key]);
+        lines.push(cfg.title);
+        lines.push("BlockNumber");
+        lines.push(...list.map(String));
+        lines.push("");
+      }
+      downloadBlob(new Blob([lines.join("\r\n") + "\r\n"], { type: "text/csv;charset=utf-8" }), "sequences.csv");
+    }
+
+    exportTxtBtn.addEventListener("click", exportTxt);
+    exportCsvBtn.addEventListener("click", exportCsv);
+
+    async function toggleInFirestore(whichKey, value) {
+      if (!canEdit) {
+        alert("Please login to edit.");
+        return;
+      }
+      if (busy) return;
+
+      busy = true;
+      syncStatusEl.textContent = "Saving…";
+
+      try {
+        await runTransaction(db, async (tx) => {
+          const snap = await tx.get(docRef);
+          const data = snap.exists() ? snap.data() : {};
+
+          const fields = {
+            main: "mainCompleted",
+            pr: "prCompleted",
+            mirror: "mirrorCompleted",
+            flip: "flipCompleted",
+          };
+
+          const curSets = {
+            main: new Set(sanitizeIntArray(data[fields.main])),
+            pr: new Set(sanitizeIntArray(data[fields.pr])),
+            mirror: new Set(sanitizeIntArray(data[fields.mirror])),
+            flip: new Set(sanitizeIntArray(data[fields.flip])),
+          };
+
+          // Toggle
+          if (curSets[whichKey].has(value)) curSets[whichKey].delete(value);
+          else curSets[whichKey].add(value);
+
+          // Clean to expected ranges
+          for (const cfg of ALL) {
+            const mn = cfg.start, mx = cfg.start + cfg.total;
+            curSets[cfg.key] = new Set(Array.from(curSets[cfg.key]).filter(n => n >= mn && n < mx));
+          }
+
+          tx.set(docRef, {
+            [fields.main]: Array.from(curSets.main).sort((a,b)=>a-b),
+            [fields.pr]: Array.from(curSets.pr).sort((a,b)=>a-b),
+            [fields.mirror]: Array.from(curSets.mirror).sort((a,b)=>a-b),
+            [fields.flip]: Array.from(curSets.flip).sort((a,b)=>a-b),
+            updatedAt: serverTimestamp()
+          }, { merge: true });
         });
-        updateCounts(greenSet);
-      });
-    })();
+      } catch (e) {
+        console.error("SAVE FAILED:", e);
+        alert(`Failed to save.\n\nCode: ${e.code || "unknown"}\nMessage: ${e.message || e}`);
+      } finally {
+        busy = false;
+      }
+    }
+
+    // Build all grids
+    for (const cfg of ALL) buildGridSkeleton(gridEls[cfg.key], cfg);
+
+    // Sync
+    syncStatusEl.textContent = "Connecting…";
+    onSnapshot(docRef, (snap) => {
+      syncStatusEl.textContent = "Synced ✓";
+      const data = snap.exists() ? snap.data() : {};
+
+      const fieldByKey = {
+        main: "mainCompleted",
+        pr: "prCompleted",
+        mirror: "mirrorCompleted",
+        flip: "flipCompleted",
+      };
+
+      for (const cfg of ALL) {
+        const raw = sanitizeIntArray(data[fieldByKey[cfg.key]]);
+        const filtered = raw.filter(n => n >= cfg.start && n < cfg.start + cfg.total);
+        sets[cfg.key] = new Set(filtered);
+        applyStateToGrid(gridEls[cfg.key], sets[cfg.key], cfg);
+      }
+
+      updateAllCounts();
+    }, (err) => {
+      console.error("SYNC ERROR:", err);
+      syncStatusEl.textContent = "Sync error";
+      alert(`Sync error.\n\nCode: ${err.code || "unknown"}\nMessage: ${err.message || err}`);
+    });
+
+    updateAllCounts();
   </script>
 </body>
 </html>
