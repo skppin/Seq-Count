@@ -61,8 +61,18 @@
 
     footer { margin-top:12px; font-size:12px; color:#666; }
 
+    /* Auth inputs */
+    .auth-wrap { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .auth-wrap input {
+      border:1px solid #ccc; border-radius:10px;
+      padding:10px 12px; font-weight:600; min-width: 210px;
+    }
+
     @media (max-width: 900px) { :root { --cell-size: 38px; } }
-    @media (max-width: 650px) { :root { --cell-size: 32px; --gap: 5px; } }
+    @media (max-width: 650px) {
+      :root { --cell-size: 32px; --gap: 5px; }
+      .auth-wrap input { min-width: 160px; }
+    }
   </style>
 </head>
 
@@ -77,10 +87,14 @@
     <button class="action" id="exportTxtBtn" type="button">Export (.txt)</button>
     <button class="action" id="exportCsvBtn" type="button">Export (.csv / Excel)</button>
 
-    <!-- Single toggle auth button -->
-    <button class="action" id="authBtn" type="button">Login</button>
+    <!-- Admin login -->
+    <div class="auth-wrap">
+      <input type="email" id="emailInput" placeholder="Admin Email" autocomplete="username" />
+      <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password" />
+      <button class="action" id="authBtn" type="button">Login</button>
+    </div>
 
-    <span class="status" id="userStatus">Not logged in</span>
+    <span class="status" id="userStatus">View only</span>
     <span class="status" id="syncStatus">Connecting…</span>
   </header>
 
@@ -121,7 +135,7 @@
   </div>
 
   <footer>
-    View for everyone. Edit only for you (enforced by Firestore Security Rules).
+    Anyone can view. Only admin (email/password) can edit — enforced by Firestore Security Rules.
   </footer>
 
   <script type="module">
@@ -129,7 +143,10 @@
     import { getFirestore, doc, onSnapshot, runTransaction, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
     import {
-      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+      getAuth,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
     // ---- Firebase config (yours) ----
@@ -146,44 +163,7 @@
     // ---- Init ----
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
-    // ---- Auth (toggle button) ----
     const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    const authBtn = document.getElementById("authBtn");
-    const userStatusEl = document.getElementById("userStatus");
-
-    let canEdit = false;
-    let currentUser = null;
-
-    authBtn.addEventListener("click", async () => {
-      try {
-        if (currentUser) {
-          await signOut(auth);
-        } else {
-          await signInWithPopup(auth, provider);
-        }
-      } catch (e) {
-        console.error("AUTH ERROR:", e);
-        alert(`Auth error.\n\nCode: ${e.code || "unknown"}\nMessage: ${e.message || e}`);
-      }
-    });
-
-    onAuthStateChanged(auth, (user) => {
-      currentUser = user;
-
-      if (user) {
-        canEdit = true; // enforced by Firestore Rules too
-        authBtn.textContent = "Logout";
-        userStatusEl.textContent = `Logged in: ${user.email}`;
-        console.log("🔥 YOUR UID:", user.uid); // copy into Firestore rules
-      } else {
-        canEdit = false;
-        authBtn.textContent = "Login";
-        userStatusEl.textContent = "Not logged in";
-      }
-    });
 
     // ---- Config: sequences ----
     const MAIN   = { key:"main",   cols:16, total:240, start:1,    title:"Main Sequence" };
@@ -206,6 +186,11 @@
     const exportTxtBtn = document.getElementById("exportTxtBtn");
     const exportCsvBtn = document.getElementById("exportCsvBtn");
     const syncStatusEl = document.getElementById("syncStatus");
+    const userStatusEl = document.getElementById("userStatus");
+
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const authBtn = document.getElementById("authBtn");
 
     totalCountEl.textContent = String(GRAND_TOTAL);
 
@@ -222,6 +207,49 @@
       mirror: document.getElementById("mirrorGrid"),
       flip: document.getElementById("flipGrid"),
     };
+
+    // ---- Auth state ----
+    let canEdit = false;
+    let currentUser = null;
+
+    authBtn.addEventListener("click", async () => {
+      try {
+        if (currentUser) {
+          await signOut(auth);
+        } else {
+          const email = (emailInput.value || "").trim();
+          const pass = passwordInput.value || "";
+          if (!email || !pass) {
+            alert("Enter admin email and password.");
+            return;
+          }
+          await signInWithEmailAndPassword(auth, email, pass);
+        }
+      } catch (e) {
+        console.error("AUTH ERROR:", e);
+        alert(`Login error.\n\nCode: ${e.code || "unknown"}\nMessage: ${e.message || e}`);
+      }
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+
+      if (user) {
+        canEdit = true; // enforced by Firestore Rules
+        userStatusEl.textContent = "Admin logged in";
+        authBtn.textContent = "Logout";
+        emailInput.style.display = "none";
+        passwordInput.style.display = "none";
+        passwordInput.value = "";
+        console.log("🔥 ADMIN UID:", user.uid); // use this for Firestore rules
+      } else {
+        canEdit = false;
+        userStatusEl.textContent = "View only";
+        authBtn.textContent = "Login";
+        emailInput.style.display = "inline-block";
+        passwordInput.style.display = "inline-block";
+      }
+    });
 
     // ---- State ----
     let sets = { main:new Set(), pr:new Set(), mirror:new Set(), flip:new Set() };
@@ -316,7 +344,7 @@
 
     async function toggleInFirestore(whichKey, value) {
       if (!canEdit) {
-        alert("Please login to edit.");
+        alert("View only. Login as admin to edit.");
         return;
       }
       if (busy) return;
