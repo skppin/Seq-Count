@@ -8,20 +8,12 @@
     :root { --gap: 6px; --cell-size: 46px; --green: #2ecc71; --border: #d0d0d0; }
 
     body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; margin: 20px; color:#222; }
-
     header { display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; margin-bottom:14px; }
 
-    .stats {
-      display:flex; gap:14px; align-items:center;
-      padding:10px 12px; border:1px solid #eee; border-radius:10px; background:#fafafa;
-    }
-    .stat { font-size:14px; }
-    .stat b { font-size:16px; }
+    .stats { display:flex; gap:14px; align-items:center; padding:10px 12px; border:1px solid #eee; border-radius:10px; background:#fafafa; }
+    .stat { font-size:14px; } .stat b { font-size:16px; }
 
-    button.action {
-      cursor:pointer; border:1px solid #ccc; background:white;
-      padding:10px 12px; border-radius:10px; font-weight:700;
-    }
+    button.action { cursor:pointer; border:1px solid #ccc; background:white; padding:10px 12px; border-radius:10px; font-weight:700; }
     button.action:hover { background:#f5f5f5; }
 
     .status { font-size:13px; color:#555; padding-left:4px; }
@@ -29,25 +21,13 @@
     .boards, .boards-below { display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap; }
     .boards { margin-bottom:14px; }
 
-    .board {
-      flex:1 1 520px; border:1px solid #eee; border-radius:14px;
-      padding:14px; background:#fff; box-shadow:0 1px 0 rgba(0,0,0,0.03);
-    }
+    .board { flex:1 1 520px; border:1px solid #eee; border-radius:14px; padding:14px; background:#fff; box-shadow:0 1px 0 rgba(0,0,0,0.03); }
 
-    .board-title {
-      margin:0 0 10px 0; font-size:16px;
-      display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
-    }
-
-    .mini-stats {
-      font-size:13px; color:#444;
-      padding:4px 8px; border:1px solid #eee; border-radius:999px; background:#fafafa;
-      white-space: nowrap;
-    }
+    .board-title { margin:0 0 10px 0; font-size:16px; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+    .mini-stats { font-size:13px; color:#444; padding:4px 8px; border:1px solid #eee; border-radius:999px; background:#fafafa; white-space: nowrap; }
     .mini-stats b { font-size:13px; }
 
     .grid { display:grid; gap:var(--gap); user-select:none; }
-
     .cell {
       width:var(--cell-size); height:var(--cell-size);
       display:inline-flex; align-items:center; justify-content:center;
@@ -61,11 +41,15 @@
 
     footer { margin-top:12px; font-size:12px; color:#666; }
 
-    /* Auth inputs */
-    .auth-wrap { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .auth-wrap, .server-wrap { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
     .auth-wrap input {
       border:1px solid #ccc; border-radius:10px;
       padding:10px 12px; font-weight:600; min-width: 210px;
+    }
+    .server-wrap select{
+      border:1px solid #ccc; border-radius:10px;
+      padding:10px 12px; font-weight:700;
+      background:#fff;
     }
 
     @media (max-width: 900px) { :root { --cell-size: 38px; } }
@@ -86,6 +70,17 @@
 
     <button class="action" id="exportTxtBtn" type="button">Export (.txt)</button>
     <button class="action" id="exportCsvBtn" type="button">Export (.csv / Excel)</button>
+
+    <!-- ✅ SERVER SYNC -->
+    <div class="server-wrap">
+      <select id="syncSelect" aria-label="Select file to sync">
+        <option value="main">Main (includes PR)</option>
+        <option value="mirror">Mirror</option>
+        <option value="flip">Flip</option>
+      </select>
+      <button class="action" id="serverSyncBtn" type="button">Sync From Server</button>
+      <span class="status" id="serverHint">Uses /completed/*.txt on GitHub Pages</span>
+    </div>
 
     <!-- Admin login -->
     <div class="auth-wrap">
@@ -135,19 +130,15 @@
   </div>
 
   <footer>
-    Anyone can view. Only admin (email/password) can edit — enforced by Firestore Security Rules.
+    Server sync fetches text files from GitHub Pages and writes to Firestore (so everyone sees updates).
   </footer>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import { getFirestore, doc, onSnapshot, runTransaction, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-    import {
-      getAuth,
-      signInWithEmailAndPassword,
-      signOut,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
     // ---- Firebase config (yours) ----
     const firebaseConfig = {
@@ -160,7 +151,6 @@
       measurementId: "G-YDCLDEBSYF"
     };
 
-    // ---- Init ----
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
@@ -169,13 +159,11 @@
     const MAIN   = { key:"main",   cols:16, total:240, start:1,    title:"Main Sequence" };
     const MIRROR = { key:"mirror", cols:16, total:240, start:1,    title:"Mirror Sequences" };
     const FLIP   = { key:"flip",   cols:16, total:240, start:1,    title:"Flip Sequences" };
-    // 1001..1050 inclusive => 50
     const PR     = { key:"pr",     cols:10, total:50,  start:1001, title:"Penalty & Referee Sequence" };
 
     const ALL = [MAIN, MIRROR, FLIP, PR];
     const GRAND_TOTAL = ALL.reduce((sum, c) => sum + c.total, 0);
 
-    // ---- Firestore doc ----
     const trackerDocId = "shared_tracker_v1";
     const docRef = doc(db, "trackers", trackerDocId);
 
@@ -191,6 +179,10 @@
     const emailInput = document.getElementById("emailInput");
     const passwordInput = document.getElementById("passwordInput");
     const authBtn = document.getElementById("authBtn");
+
+    const syncSelect = document.getElementById("syncSelect");
+    const serverSyncBtn = document.getElementById("serverSyncBtn");
+    const serverHint = document.getElementById("serverHint");
 
     totalCountEl.textContent = String(GRAND_TOTAL);
 
@@ -233,15 +225,13 @@
 
     onAuthStateChanged(auth, (user) => {
       currentUser = user;
-
       if (user) {
-        canEdit = true; // enforced by Firestore Rules
+        canEdit = true;
         userStatusEl.textContent = "Admin logged in";
         authBtn.textContent = "Logout";
         emailInput.style.display = "none";
         passwordInput.style.display = "none";
         passwordInput.value = "";
-        console.log("🔥 ADMIN UID:", user.uid); // use this for Firestore rules
       } else {
         canEdit = false;
         userStatusEl.textContent = "View only";
@@ -251,7 +241,7 @@
       }
     });
 
-    // ---- State ----
+    // ---- State (from Firestore) ----
     let sets = { main:new Set(), pr:new Set(), mirror:new Set(), flip:new Set() };
     let busy = false;
 
@@ -273,19 +263,15 @@
     function buildGridSkeleton(gridEl, cfg) {
       gridEl.style.gridTemplateColumns = `repeat(${cfg.cols}, var(--cell-size))`;
       gridEl.innerHTML = "";
-
       const frag = document.createDocumentFragment();
       for (let i = 0; i < cfg.total; i++) {
         const value = cfg.start + i;
-
         const cell = document.createElement("button");
         cell.type = "button";
         cell.className = "cell";
         cell.textContent = value;
         cell.setAttribute("role", "gridcell");
-
         cell.addEventListener("click", () => toggleInFirestore(cfg.key, value));
-
         frag.appendChild(cell);
       }
       gridEl.appendChild(frag);
@@ -301,6 +287,11 @@
       }
     }
 
+    function render() {
+      for (const cfg of ALL) applyStateToGrid(gridEls[cfg.key], sets[cfg.key], cfg);
+      updateAllCounts();
+    }
+
     function downloadBlob(blob, filename) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -312,9 +303,7 @@
       URL.revokeObjectURL(url);
     }
 
-    function getSorted(set) {
-      return Array.from(set).sort((a, b) => a - b);
-    }
+    function getSorted(set) { return Array.from(set).sort((a, b) => a - b); }
 
     function exportTxt() {
       const lines = [];
@@ -342,13 +331,10 @@
     exportTxtBtn.addEventListener("click", exportTxt);
     exportCsvBtn.addEventListener("click", exportCsv);
 
+    // ---- Click toggle (Firestore write) ----
     async function toggleInFirestore(whichKey, value) {
-      if (!canEdit) {
-        alert("View only. Login as admin to edit.");
-        return;
-      }
+      if (!canEdit) { alert("View only. Login as admin to edit."); return; }
       if (busy) return;
-
       busy = true;
       syncStatusEl.textContent = "Saving…";
 
@@ -371,11 +357,10 @@
             flip: new Set(sanitizeIntArray(data[fields.flip])),
           };
 
-          // Toggle
           if (curSets[whichKey].has(value)) curSets[whichKey].delete(value);
           else curSets[whichKey].add(value);
 
-          // Clean to expected ranges
+          // clean ranges
           for (const cfg of ALL) {
             const mn = cfg.start, mx = cfg.start + cfg.total;
             curSets[cfg.key] = new Set(Array.from(curSets[cfg.key]).filter(n => n >= mn && n < mx));
@@ -387,7 +372,7 @@
             [fields.mirror]: Array.from(curSets.mirror).sort((a,b)=>a-b),
             [fields.flip]: Array.from(curSets.flip).sort((a,b)=>a-b),
             updatedAt: serverTimestamp()
-          }, { merge: true });
+          }, { merge:true });
         });
       } catch (e) {
         console.error("SAVE FAILED:", e);
@@ -397,10 +382,113 @@
       }
     }
 
-    // Build all grids
+    // ✅ SERVER FILE PATHS (GitHub Pages)
+    // Put these files in your repo:
+    //   /completed/main.txt   (contains 1-240 AND 1001-1050)
+    //   /completed/mirror.txt (contains 1-240)
+    //   /completed/flip.txt   (contains 1-240)
+    const SERVER_FILES = {
+      main:   "./completed/main.txt",
+      mirror: "./completed/mirror.txt",
+      flip:   "./completed/flip.txt",
+    };
+
+    function parseNumbers(text) {
+      const matches = String(text).match(/\d+/g) || [];
+      return matches.map(m => parseInt(m, 10)).filter(n => Number.isFinite(n));
+    }
+
+    function splitMainAndPr(nums) {
+      const mainNums = nums.filter(n => n >= 1 && n <= 240);
+      const prNums   = nums.filter(n => n >= 1001 && n <= 1050);
+      return { mainNums, prNums };
+    }
+
+    function clampToRange(nums, start, total) {
+      const min = start;
+      const maxExcl = start + total;
+      return nums.filter(n => n >= min && n < maxExcl);
+    }
+
+    async function syncFromServer() {
+      if (!canEdit) { alert("Login as admin to sync from server."); return; }
+      if (busy) return;
+
+      const mode = syncSelect.value;
+      const url = SERVER_FILES[mode];
+      if (!url) { alert("Invalid sync option."); return; }
+
+      busy = true;
+      syncStatusEl.textContent = "Fetching…";
+      serverHint.textContent = `Fetching ${url}`;
+
+      try {
+        // cache-bust
+        const res = await fetch(url + "?ts=" + Date.now(), { cache: "no-store" });
+        if (!res.ok) throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
+
+        const text = await res.text();
+        const nums = parseNumbers(text);
+
+        syncStatusEl.textContent = "Saving…";
+
+        await runTransaction(db, async (tx) => {
+          const snap = await tx.get(docRef);
+          const data = snap.exists() ? snap.data() : {};
+
+          const fields = {
+            main: "mainCompleted",
+            pr: "prCompleted",
+            mirror: "mirrorCompleted",
+            flip: "flipCompleted",
+          };
+
+          // IMPORTANT: server sync REPLACES the target set(s) to match the file exactly
+          // (If you prefer UNION instead, tell me and I’ll change.)
+          const next = {
+            main: new Set(sanitizeIntArray(data[fields.main])),
+            pr: new Set(sanitizeIntArray(data[fields.pr])),
+            mirror: new Set(sanitizeIntArray(data[fields.mirror])),
+            flip: new Set(sanitizeIntArray(data[fields.flip])),
+          };
+
+          if (mode === "main") {
+            const { mainNums, prNums } = splitMainAndPr(nums);
+            next.main = new Set(clampToRange(mainNums, MAIN.start, MAIN.total));
+            next.pr   = new Set(clampToRange(prNums, PR.start, PR.total));
+          } else if (mode === "mirror") {
+            next.mirror = new Set(clampToRange(nums, MIRROR.start, MIRROR.total));
+          } else if (mode === "flip") {
+            next.flip = new Set(clampToRange(nums, FLIP.start, FLIP.total));
+          }
+
+          tx.set(docRef, {
+            [fields.main]: Array.from(next.main).sort((a,b)=>a-b),
+            [fields.pr]: Array.from(next.pr).sort((a,b)=>a-b),
+            [fields.mirror]: Array.from(next.mirror).sort((a,b)=>a-b),
+            [fields.flip]: Array.from(next.flip).sort((a,b)=>a-b),
+            updatedAt: serverTimestamp(),
+            lastServerSync: mode
+          }, { merge: true });
+        });
+
+        syncStatusEl.textContent = "Synced ✓";
+        serverHint.textContent = `Synced from ${url}`;
+      } catch (e) {
+        console.error("SERVER SYNC FAILED:", e);
+        syncStatusEl.textContent = "Sync error";
+        alert(`Server sync failed.\n\n${e.message || e}`);
+      } finally {
+        busy = false;
+      }
+    }
+
+    serverSyncBtn.addEventListener("click", syncFromServer);
+
+    // Build grids
     for (const cfg of ALL) buildGridSkeleton(gridEls[cfg.key], cfg);
 
-    // Sync
+    // Live snapshot
     syncStatusEl.textContent = "Connecting…";
     onSnapshot(docRef, (snap) => {
       syncStatusEl.textContent = "Synced ✓";
@@ -417,17 +505,16 @@
         const raw = sanitizeIntArray(data[fieldByKey[cfg.key]]);
         const filtered = raw.filter(n => n >= cfg.start && n < cfg.start + cfg.total);
         sets[cfg.key] = new Set(filtered);
-        applyStateToGrid(gridEls[cfg.key], sets[cfg.key], cfg);
       }
 
-      updateAllCounts();
+      render();
     }, (err) => {
       console.error("SYNC ERROR:", err);
       syncStatusEl.textContent = "Sync error";
       alert(`Sync error.\n\nCode: ${err.code || "unknown"}\nMessage: ${err.message || err}`);
     });
 
-    updateAllCounts();
+    render();
   </script>
 </body>
 </html>
