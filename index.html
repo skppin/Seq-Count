@@ -5,76 +5,161 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Seq Completion Tracker</title>
   <style>
-    :root { --gap: 6px; --cell-size: 46px; --green: #2ecc71; --border: #d0d0d0; }
+    :root {
+      --gap: 6px;
+      --cell-size: 46px;
+      --green: #2ecc71;
+      --border: #d0d0d0;
+    }
 
-    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; margin: 20px; color:#222; }
-    header { display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; margin-bottom:14px; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 20px;
+      color: #222;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 14px;
+      margin-bottom: 14px;
+    }
 
     .stats {
-      display:flex; gap:14px; align-items:center;
-      padding:10px 12px; border:1px solid #eee; border-radius:10px; background:#fafafa;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      background: #fafafa;
     }
-    .stat { font-size:14px; }
-    .stat b { font-size:16px; }
+
+    .stat { font-size: 14px; }
+    .stat b { font-size: 16px; }
 
     button.action {
-      cursor:pointer; border:1px solid #ccc; background:white;
-      padding:10px 12px; border-radius:10px; font-weight:700;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      background: white;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 700;
     }
-    button.action:hover { background:#f5f5f5; }
 
-    .status { font-size:13px; color:#555; padding-left:4px; }
+    button.action:hover {
+      background: #f5f5f5;
+    }
 
-    .boards, .boards-below { display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap; }
-    .boards { margin-bottom:14px; }
+    .status {
+      font-size: 13px;
+      color: #555;
+      padding-left: 4px;
+    }
+
+    .boards, .boards-below {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .boards { margin-bottom: 14px; }
 
     .board {
-      flex:1 1 520px; border:1px solid #eee; border-radius:14px;
-      padding:14px; background:#fff; box-shadow:0 1px 0 rgba(0,0,0,0.03);
+      flex: 1 1 520px;
+      border: 1px solid #eee;
+      border-radius: 14px;
+      padding: 14px;
+      background: #fff;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.03);
     }
 
     .board-title {
-      margin:0 0 10px 0; font-size:16px;
-      display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+      margin: 0 0 10px 0;
+      font-size: 16px;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .mini-stats {
-      font-size:13px; color:#444;
-      padding:4px 8px; border:1px solid #eee; border-radius:999px; background:#fafafa;
+      font-size: 13px;
+      color: #444;
+      padding: 4px 8px;
+      border: 1px solid #eee;
+      border-radius: 999px;
+      background: #fafafa;
       white-space: nowrap;
     }
-    .mini-stats b { font-size:13px; }
 
-    .grid { display:grid; gap:var(--gap); user-select:none; }
+    .mini-stats b { font-size: 13px; }
+
+    .grid {
+      display: grid;
+      gap: var(--gap);
+      user-select: none;
+    }
 
     .cell {
-      width:var(--cell-size); height:var(--cell-size);
-      display:inline-flex; align-items:center; justify-content:center;
-      border:1px solid var(--border); border-radius:10px; background:#fff;
-      font-weight:700; font-size:13px;
-      transition:transform 80ms ease, background 120ms ease, border-color 120ms ease;
-      box-shadow:0 1px 0 rgba(0,0,0,0.03);
-    }
-    .cell:active { transform:scale(0.98); }
-    .cell.green { background:var(--green); border-color:#25b864; color:#0b3a1e; }
-
-    footer { margin-top:12px; font-size:12px; color:#666; }
-
-    /* Auth inputs */
-    .auth-wrap { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-    .auth-wrap input {
-      border:1px solid #ccc; border-radius:10px;
-      padding:10px 12px; font-weight:600; min-width: 210px;
+      width: var(--cell-size);
+      height: var(--cell-size);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+      padding: 2px;
+      text-align: center;
+      overflow: hidden;
     }
 
-    /* Server sync */
-    .server-wrap { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-    .hint { font-size:12px; color:#666; }
+    .cell.green {
+      background: var(--green);
+      border-color: #25b864;
+      color: #0b3a1e;
+    }
 
-    @media (max-width: 900px) { :root { --cell-size: 38px; } }
+    .cell-number {
+      font-weight: 700;
+      font-size: 12px;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+
+    .cell-type {
+      font-size: 8px;
+      line-height: 1;
+      max-width: 100%;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      opacity: 0.95;
+    }
+
+    footer {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    @media (max-width: 900px) {
+      :root { --cell-size: 38px; }
+    }
+
     @media (max-width: 650px) {
       :root { --cell-size: 32px; --gap: 5px; }
-      .auth-wrap input { min-width: 160px; }
+      .cell-number { font-size: 10px; }
+      .cell-type { font-size: 7px; }
     }
   </style>
 </head>
@@ -90,21 +175,8 @@
     <button class="action" id="exportTxtBtn" type="button">Export (.txt)</button>
     <button class="action" id="exportCsvBtn" type="button">Export (.csv / Excel)</button>
 
-    <!-- ✅ Single JSON sync -->
-    <div class="server-wrap">
-      <button class="action" id="jsonSyncBtn" type="button">Sync From JSON</button>
-      <span class="hint" id="serverHint">Fetches ./completed/data.json (main includes PR)</span>
-    </div>
-
-    <!-- Admin login -->
-    <div class="auth-wrap">
-      <input type="email" id="emailInput" placeholder="Admin Email" autocomplete="username" />
-      <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password" />
-      <button class="action" id="authBtn" type="button">Login</button>
-    </div>
-
-    <span class="status" id="userStatus">View only</span>
-    <span class="status" id="syncStatus">Connecting…</span>
+    <span class="status" id="syncStatus">Loading…</span>
+    <span class="status" id="lastSync"></span>
   </header>
 
   <div class="boards">
@@ -144,65 +216,33 @@
   </div>
 
   <footer>
-    Anyone can view. Only admin (email/password) can edit — enforced by Firestore Security Rules.
-    JSON Sync reads ./completed/data.json and writes to Firestore (so everyone sees updates).
+    Auto-sync on open/refresh from <code>./completed/data.json</code> and <code>./completed/types.json</code>.
   </footer>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, runTransaction, serverTimestamp }
-      from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
-      from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+  <script>
+    const DEFAULT_TYPE = "N/A";
 
-    // ---- Firebase config (yours) ----
-    const firebaseConfig = {
-      apiKey: "AIzaSyBQtfudSJNZb3AyQiNTDfZM0E0LwdEBm1M",
-      authDomain: "seq-helper-2026.firebaseapp.com",
-      projectId: "seq-helper-2026",
-      storageBucket: "seq-helper-2026.firebasestorage.app",
-      messagingSenderId: "724035616020",
-      appId: "1:724035616020:web:bb31393c2bec91ca955601",
-      measurementId: "G-YDCLDEBSYF"
-    };
-
-    // ---- Init ----
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-
-    // ---- Sequences ----
-    const MAIN   = { key:"main",   cols:16, total:240, start:1,    title:"Main Sequence" };
-    const PR     = { key:"pr",     cols:10, total:50,  start:1001, title:"Penalty & Referee Sequence" };
-    const MIRROR = { key:"mirror", cols:16, total:240, start:1,    title:"Mirror Sequences" };
-    const FLIP   = { key:"flip",   cols:16, total:240, start:1,    title:"Flip Sequences" };
+    const MAIN   = { key: "main",   cols: 16, total: 240, start: 1,    title: "Main Sequence" };
+    const PR     = { key: "pr",     cols: 10, total: 50,  start: 1001, title: "Penalty & Referee Sequence" };
+    const MIRROR = { key: "mirror", cols: 16, total: 240, start: 1,    title: "Mirror Sequences" };
+    const FLIP   = { key: "flip",   cols: 16, total: 240, start: 1,    title: "Flip Sequences" };
     const ALL = [MAIN, PR, MIRROR, FLIP];
 
     const GRAND_TOTAL = ALL.reduce((sum, c) => sum + c.total, 0);
 
-    // ---- Firestore doc ----
-    const trackerDocId = "shared_tracker_v1";
-    const docRef = doc(db, "trackers", trackerDocId);
+    const DATA_URL = "./completed/data.json";
+    const TYPES_URL = "./completed/types.json";
 
-    // ---- UI ----
     const completedCountEl = document.getElementById("completedCount");
     const remainingCountEl = document.getElementById("remainingCount");
     const totalCountEl = document.getElementById("totalCount");
     const exportTxtBtn = document.getElementById("exportTxtBtn");
     const exportCsvBtn = document.getElementById("exportCsvBtn");
     const syncStatusEl = document.getElementById("syncStatus");
-    const userStatusEl = document.getElementById("userStatus");
-
-    const emailInput = document.getElementById("emailInput");
-    const passwordInput = document.getElementById("passwordInput");
-    const authBtn = document.getElementById("authBtn");
-
-    const jsonSyncBtn = document.getElementById("jsonSyncBtn");
-    const serverHint = document.getElementById("serverHint");
+    const lastSyncEl = document.getElementById("lastSync");
 
     totalCountEl.textContent = String(GRAND_TOTAL);
 
-    // Per-grid mini stats
     const mini = {
       main:   { done: document.getElementById("mainDone"),   rem: document.getElementById("mainRem") },
       pr:     { done: document.getElementById("prDone"),     rem: document.getElementById("prRem") },
@@ -217,54 +257,60 @@
       flip: document.getElementById("flipGrid"),
     };
 
-    // ---- Auth state ----
-    let canEdit = false;
-    let currentUser = null;
+    let sets = {
+      main: new Set(),
+      pr: new Set(),
+      mirror: new Set(),
+      flip: new Set(),
+    };
 
-    authBtn.addEventListener("click", async () => {
-      try {
-        if (currentUser) {
-          await signOut(auth);
-        } else {
-          const email = (emailInput.value || "").trim();
-          const pass = passwordInput.value || "";
-          if (!email || !pass) {
-            alert("Enter admin email and password.");
-            return;
-          }
-          await signInWithEmailAndPassword(auth, email, pass);
-        }
-      } catch (e) {
-        console.error("AUTH ERROR:", e);
-        alert(`Login error.\n\nCode: ${e.code || "unknown"}\nMessage: ${e.message || e}`);
+    let types = {
+      main: new Map(),
+      pr: new Map(),
+      mirror: new Map(),
+      flip: new Map(),
+    };
+
+    function buildGridSkeleton(gridEl, cfg) {
+      gridEl.style.gridTemplateColumns = `repeat(${cfg.cols}, var(--cell-size))`;
+      gridEl.innerHTML = "";
+
+      const frag = document.createDocumentFragment();
+
+      for (let i = 0; i < cfg.total; i++) {
+        const value = cfg.start + i;
+
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.setAttribute("role", "gridcell");
+        cell.dataset.value = String(value);
+
+        const numberEl = document.createElement("div");
+        numberEl.className = "cell-number";
+        numberEl.textContent = value;
+
+        const typeEl = document.createElement("div");
+        typeEl.className = "cell-type";
+        typeEl.textContent = DEFAULT_TYPE;
+
+        cell.appendChild(numberEl);
+        cell.appendChild(typeEl);
+        frag.appendChild(cell);
       }
-    });
 
-    onAuthStateChanged(auth, (user) => {
-      currentUser = user;
+      gridEl.appendChild(frag);
+    }
 
-      if (user) {
-        canEdit = true; // enforced by Firestore Rules
-        userStatusEl.textContent = "Admin logged in";
-        authBtn.textContent = "Logout";
-        emailInput.style.display = "none";
-        passwordInput.style.display = "none";
-        passwordInput.value = "";
-      } else {
-        canEdit = false;
-        userStatusEl.textContent = "View only";
-        authBtn.textContent = "Login";
-        emailInput.style.display = "inline-block";
-        passwordInput.style.display = "inline-block";
+    function applyStateToGrid(gridEl, set, typeMap, cfg) {
+      for (let i = 0; i < cfg.total; i++) {
+        const value = cfg.start + i;
+        const cell = gridEl.children[i];
+        const done = set.has(value);
+        const typeText = typeMap.get(value) || DEFAULT_TYPE;
+
+        cell.classList.toggle("green", done);
+        cell.querySelector(".cell-type").textContent = typeText;
       }
-    });
-
-    // ---- State ----
-    let sets = { main:new Set(), pr:new Set(), mirror:new Set(), flip:new Set() };
-    let busy = false;
-
-    function sanitizeIntArray(arr) {
-      return Array.isArray(arr) ? arr.filter(n => Number.isInteger(n)) : [];
     }
 
     function updateAllCounts() {
@@ -273,47 +319,23 @@
         mini[cfg.key].done.textContent = String(done);
         mini[cfg.key].rem.textContent = String(cfg.total - done);
       }
-      const completed = sets.main.size + sets.pr.size + sets.mirror.size + sets.flip.size;
+
+      const completed =
+        sets.main.size + sets.pr.size + sets.mirror.size + sets.flip.size;
+
       completedCountEl.textContent = String(completed);
       remainingCountEl.textContent = String(GRAND_TOTAL - completed);
     }
 
-    function buildGridSkeleton(gridEl, cfg) {
-      gridEl.style.gridTemplateColumns = `repeat(${cfg.cols}, var(--cell-size))`;
-      gridEl.innerHTML = "";
-
-      const frag = document.createDocumentFragment();
-      for (let i = 0; i < cfg.total; i++) {
-        const value = cfg.start + i;
-
-        const cell = document.createElement("button");
-        cell.type = "button";
-        cell.className = "cell";
-        cell.textContent = value;
-        cell.setAttribute("role", "gridcell");
-
-        cell.addEventListener("click", () => toggleInFirestore(cfg.key, value));
-
-        frag.appendChild(cell);
-      }
-      gridEl.appendChild(frag);
-    }
-
-    function applyStateToGrid(gridEl, set, cfg) {
-      for (let i = 0; i < cfg.total; i++) {
-        const value = cfg.start + i;
-        const cell = gridEl.children[i];
-        const done = set.has(value);
-        cell.classList.toggle("green", done);
-        cell.setAttribute("aria-pressed", done ? "true" : "false");
-      }
-    }
-
     function render() {
       for (const cfg of ALL) {
-        applyStateToGrid(gridEls[cfg.key], sets[cfg.key], cfg);
+        applyStateToGrid(gridEls[cfg.key], sets[cfg.key], types[cfg.key], cfg);
       }
       updateAllCounts();
+    }
+
+    function getSorted(set) {
+      return Array.from(set).sort((a, b) => a - b);
     }
 
     function downloadBlob(blob, filename) {
@@ -327,19 +349,19 @@
       URL.revokeObjectURL(url);
     }
 
-    function getSorted(set) {
-      return Array.from(set).sort((a, b) => a - b);
-    }
-
     function exportTxt() {
       const lines = [
-        MAIN.title, ...getSorted(sets.main).map(String),
+        MAIN.title,
+        ...getSorted(sets.main).map(n => `${n} - ${types.main.get(n) || DEFAULT_TYPE}`),
         "",
-        PR.title, ...getSorted(sets.pr).map(String),
+        PR.title,
+        ...getSorted(sets.pr).map(n => `${n} - ${types.pr.get(n) || DEFAULT_TYPE}`),
         "",
-        MIRROR.title, ...getSorted(sets.mirror).map(String),
+        MIRROR.title,
+        ...getSorted(sets.mirror).map(n => `${n} - ${types.mirror.get(n) || DEFAULT_TYPE}`),
         "",
-        FLIP.title, ...getSorted(sets.flip).map(String),
+        FLIP.title,
+        ...getSorted(sets.flip).map(n => `${n} - ${types.flip.get(n) || DEFAULT_TYPE}`),
         ""
       ].join("\n");
 
@@ -348,13 +370,21 @@
 
     function exportCsv() {
       const lines = [
-        MAIN.title, "BlockNumber", ...getSorted(sets.main).map(String),
+        MAIN.title,
+        "BlockNumber,BlockType",
+        ...getSorted(sets.main).map(n => `${n},"${(types.main.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}"`),
         "",
-        PR.title, "BlockNumber", ...getSorted(sets.pr).map(String),
+        PR.title,
+        "BlockNumber,BlockType",
+        ...getSorted(sets.pr).map(n => `${n},"${(types.pr.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}"`),
         "",
-        MIRROR.title, "BlockNumber", ...getSorted(sets.mirror).map(String),
+        MIRROR.title,
+        "BlockNumber,BlockType",
+        ...getSorted(sets.mirror).map(n => `${n},"${(types.mirror.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}"`),
         "",
-        FLIP.title, "BlockNumber", ...getSorted(sets.flip).map(String),
+        FLIP.title,
+        "BlockNumber,BlockType",
+        ...getSorted(sets.flip).map(n => `${n},"${(types.flip.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}"`),
         ""
       ].join("\r\n") + "\r\n";
 
@@ -364,153 +394,116 @@
     exportTxtBtn.addEventListener("click", exportTxt);
     exportCsvBtn.addEventListener("click", exportCsv);
 
-    // ---- Click toggle (Firestore write) ----
-    async function toggleInFirestore(whichKey, value) {
-      if (!canEdit) {
-        alert("View only. Login as admin to edit.");
-        return;
-      }
-      if (busy) return;
+    function resetState() {
+      sets = {
+        main: new Set(),
+        pr: new Set(),
+        mirror: new Set(),
+        flip: new Set(),
+      };
 
-      busy = true;
-      syncStatusEl.textContent = "Saving…";
-
-      try {
-        await runTransaction(db, async (tx) => {
-          const snap = await tx.get(docRef);
-          const data = snap.exists() ? snap.data() : {};
-
-          const fields = {
-            main: "mainCompleted",
-            pr: "prCompleted",
-            mirror: "mirrorCompleted",
-            flip: "flipCompleted",
-          };
-
-          const curSets = {
-            main: new Set(sanitizeIntArray(data[fields.main])),
-            pr: new Set(sanitizeIntArray(data[fields.pr])),
-            mirror: new Set(sanitizeIntArray(data[fields.mirror])),
-            flip: new Set(sanitizeIntArray(data[fields.flip])),
-          };
-
-          if (curSets[whichKey].has(value)) curSets[whichKey].delete(value);
-          else curSets[whichKey].add(value);
-
-          // Clean to expected ranges
-          for (const cfg of ALL) {
-            const mn = cfg.start;
-            const mx = cfg.start + cfg.total;
-            curSets[cfg.key] = new Set(Array.from(curSets[cfg.key]).filter(n => n >= mn && n < mx));
-          }
-
-          tx.set(docRef, {
-            [fields.main]: Array.from(curSets.main).sort((a,b)=>a-b),
-            [fields.pr]: Array.from(curSets.pr).sort((a,b)=>a-b),
-            [fields.mirror]: Array.from(curSets.mirror).sort((a,b)=>a-b),
-            [fields.flip]: Array.from(curSets.flip).sort((a,b)=>a-b),
-            updatedAt: serverTimestamp()
-          }, { merge: true });
-        });
-      } catch (e) {
-        console.error("SAVE FAILED:", e);
-        alert(`Failed to save.\n\nCode: ${e.code || "unknown"}\nMessage: ${e.message || e}`);
-      } finally {
-        busy = false;
-      }
+      types = {
+        main: new Map(),
+        pr: new Map(),
+        mirror: new Map(),
+        flip: new Map(),
+      };
     }
 
-    // ---- ✅ JSON Sync (single file) ----
-    // data.json format:
-    // { "main":[1,2,3,1001,1002], "mirror":[...], "flip":[...] }
-    const JSON_URL = "./completed/data.json";
-
-    function parseNumbersArray(arr) {
+    function parseNumberArray(arr) {
       return Array.isArray(arr) ? arr.filter(n => Number.isInteger(n)) : [];
     }
 
-    jsonSyncBtn.addEventListener("click", async () => {
-      if (!canEdit) {
-        alert("Login as admin to sync.");
-        return;
-      }
-      if (busy) return;
+    function parseTypeObject(obj) {
+      return obj && typeof obj === "object" && !Array.isArray(obj) ? obj : {};
+    }
 
-      busy = true;
-      syncStatusEl.textContent = "Fetching JSON…";
-      serverHint.textContent = `Fetching ${JSON_URL}`;
+    function applyCompletionForKey(key, nums, min, max) {
+      for (const n of nums) {
+        if (n >= min && n <= max) {
+          sets[key].add(n);
+        }
+      }
+    }
+
+    function applyTypesForKey(key, obj, min, max) {
+      for (const [rawKey, rawValue] of Object.entries(obj)) {
+        const n = parseInt(rawKey, 10);
+        if (!Number.isInteger(n)) continue;
+        if (n < min || n > max) continue;
+        if (typeof rawValue !== "string" || !rawValue.trim()) continue;
+        types[key].set(n, rawValue.trim());
+      }
+    }
+
+    function fillMissingTypes() {
+      for (const cfg of ALL) {
+        for (let n = cfg.start; n < cfg.start + cfg.total; n++) {
+          if (!types[cfg.key].has(n)) {
+            types[cfg.key].set(n, DEFAULT_TYPE);
+          }
+        }
+      }
+    }
+
+    async function loadFromJson() {
+      syncStatusEl.textContent = "Fetching…";
 
       try {
-        const res = await fetch(JSON_URL + "?ts=" + Date.now(), { cache: "no-store" });
-        if (!res.ok) throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
+        const [dataRes, typesRes] = await Promise.all([
+          fetch(DATA_URL + "?ts=" + Date.now(), { cache: "no-store" }),
+          fetch(TYPES_URL + "?ts=" + Date.now(), { cache: "no-store" })
+        ]);
 
-        const json = await res.json();
+        if (!dataRes.ok) throw new Error(`data.json fetch failed: ${dataRes.status} ${dataRes.statusText}`);
+        if (!typesRes.ok) throw new Error(`types.json fetch failed: ${typesRes.status} ${typesRes.statusText}`);
 
-        const mainRaw = parseNumbersArray(json.main);
-        const mirrorRaw = parseNumbersArray(json.mirror);
-        const flipRaw = parseNumbersArray(json.flip);
+        const dataJson = await dataRes.json();
+        const typesJson = await typesRes.json();
 
-        // Split "main" into Main(1..240) and PR(1001..1050)
-        const mainNums = mainRaw.filter(n => n >= 1 && n <= 240);
-        const prNums   = mainRaw.filter(n => n >= 1001 && n <= 1050);
+        resetState();
 
-        const mirrorNums = mirrorRaw.filter(n => n >= 1 && n <= 240);
-        const flipNums   = flipRaw.filter(n => n >= 1 && n <= 240);
+        const mainNumbers = parseNumberArray(dataJson.main);
+        const mirrorNumbers = parseNumberArray(dataJson.mirror);
+        const flipNumbers = parseNumberArray(dataJson.flip);
 
-        syncStatusEl.textContent = "Saving…";
+        const mainTypes = parseTypeObject(typesJson.main);
+        const mirrorTypes = parseTypeObject(typesJson.mirror);
+        const flipTypes = parseTypeObject(typesJson.flip);
 
-        await runTransaction(db, async (tx) => {
-          tx.set(docRef, {
-            mainCompleted: Array.from(new Set(mainNums)).sort((a,b)=>a-b),
-            prCompleted: Array.from(new Set(prNums)).sort((a,b)=>a-b),
-            mirrorCompleted: Array.from(new Set(mirrorNums)).sort((a,b)=>a-b),
-            flipCompleted: Array.from(new Set(flipNums)).sort((a,b)=>a-b),
-            updatedAt: serverTimestamp(),
-            lastJsonSync: serverTimestamp()
-          }, { merge: true });
-        });
+        applyCompletionForKey("main", mainNumbers, 1, 240);
+        applyCompletionForKey("pr", mainNumbers, 1001, 1050);
+        applyCompletionForKey("mirror", mirrorNumbers, 1, 240);
+        applyCompletionForKey("flip", flipNumbers, 1, 240);
+
+        applyTypesForKey("main", mainTypes, 1, 240);
+        applyTypesForKey("pr", mainTypes, 1001, 1050);
+        applyTypesForKey("mirror", mirrorTypes, 1, 240);
+        applyTypesForKey("flip", flipTypes, 1, 240);
+
+        fillMissingTypes();
+
+        render();
 
         syncStatusEl.textContent = "Synced ✓";
-        serverHint.textContent = "Synced from data.json";
+        lastSyncEl.textContent = `Last sync: ${new Date().toLocaleString()}`;
       } catch (e) {
-        console.error("JSON SYNC FAILED:", e);
+        console.error("JSON LOAD FAILED:", e);
         syncStatusEl.textContent = "Sync error";
+        lastSyncEl.textContent = "";
         alert(`JSON Sync failed.\n\n${e.message || e}`);
-      } finally {
-        busy = false;
       }
-    });
+    }
 
-    // ---- Build grids ----
     buildGridSkeleton(gridEls.main, MAIN);
     buildGridSkeleton(gridEls.pr, PR);
     buildGridSkeleton(gridEls.mirror, MIRROR);
     buildGridSkeleton(gridEls.flip, FLIP);
 
-    // ---- Live sync from Firestore ----
-    syncStatusEl.textContent = "Connecting…";
-    onSnapshot(docRef, (snap) => {
-      syncStatusEl.textContent = "Synced ✓";
-      const data = snap.exists() ? snap.data() : {};
+    loadFromJson();
 
-      const mainArr = sanitizeIntArray(data.mainCompleted).filter(n => n >= 1 && n <= 240);
-      const prArr = sanitizeIntArray(data.prCompleted).filter(n => n >= 1001 && n <= 1050);
-      const mirrorArr = sanitizeIntArray(data.mirrorCompleted).filter(n => n >= 1 && n <= 240);
-      const flipArr = sanitizeIntArray(data.flipCompleted).filter(n => n >= 1 && n <= 240);
-
-      sets.main = new Set(mainArr);
-      sets.pr = new Set(prArr);
-      sets.mirror = new Set(mirrorArr);
-      sets.flip = new Set(flipArr);
-
-      render();
-    }, (err) => {
-      console.error("SYNC ERROR:", err);
-      syncStatusEl.textContent = "Sync error";
-      alert(`Sync error.\n\nCode: ${err.code || "unknown"}\nMessage: ${err.message || err}`);
-    });
-
-    render();
+    // Optional auto refresh every 60 seconds
+    // setInterval(loadFromJson, 60000);
   </script>
 </body>
 </html>
