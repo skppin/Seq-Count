@@ -265,15 +265,14 @@
   <script>
     const DEFAULT_TYPE = "N/A";
     const DEFAULT_RESULT = "N/A";
-    const TRACKED_RESULTS = ["Goal", "Miss", "Save", "Save Deflect", "Foul"];
 
-    const MAIN   = { key: "main",   cols: 16, total: 240, start: 1,    title: "Main Sequence" };
-    const PR     = { key: "pr",     cols: 10, total: 50,  start: 1001, title: "Penalty & Referee Sequence" };
-    const MIRROR = { key: "mirror", cols: 16, total: 240, start: 1,    title: "Mirror Sequences" };
-    const FLIP   = { key: "flip",   cols: 16, total: 240, start: 1,    title: "Flip Sequences" };
+    const MAIN   = { key: "main",   cols: 16, total: 240, start: 1, title: "Main Sequence" };
+    const PR     = { key: "pr",     cols: 10, total: 50, title: "Penalty & Referee Sequence" };
+    const MIRROR = { key: "mirror", cols: 16, total: 240, start: 1, title: "Mirror Sequences" };
+    const FLIP   = { key: "flip",   cols: 16, total: 240, start: 1, title: "Flip Sequences" };
     const ALL = [MAIN, PR, MIRROR, FLIP];
 
-    const GRAND_TOTAL = ALL.reduce((sum, c) => sum + c.total, 0);
+    const GRAND_TOTAL = 240 + 50 + 240 + 240;
 
     const DATA_URL = "./completed/data.json";
     const META_URL = "./completed/meta.json";
@@ -288,11 +287,11 @@
     const lastSyncEl = document.getElementById("lastSync");
 
     const resultCountEls = {
-      "Goal": document.getElementById("countGoal"),
-      "Miss": document.getElementById("countMiss"),
-      "Save": document.getElementById("countSave"),
+      Goal: document.getElementById("countGoal"),
+      Miss: document.getElementById("countMiss"),
+      Save: document.getElementById("countSave"),
       "Save Deflect": document.getElementById("countSaveDeflect"),
-      "Foul": document.getElementById("countFoul")
+      Foul: document.getElementById("countFoul")
     };
 
     totalCountEl.textContent = String(GRAND_TOTAL);
@@ -301,35 +300,35 @@
       main:   { done: document.getElementById("mainDone"),   rem: document.getElementById("mainRem") },
       pr:     { done: document.getElementById("prDone"),     rem: document.getElementById("prRem") },
       mirror: { done: document.getElementById("mirrorDone"), rem: document.getElementById("mirrorRem") },
-      flip:   { done: document.getElementById("flipDone"),   rem: document.getElementById("flipRem") },
+      flip:   { done: document.getElementById("flipDone"),   rem: document.getElementById("flipRem") }
     };
 
     const gridEls = {
       main: document.getElementById("mainGrid"),
       pr: document.getElementById("prGrid"),
       mirror: document.getElementById("mirrorGrid"),
-      flip: document.getElementById("flipGrid"),
+      flip: document.getElementById("flipGrid")
     };
 
     let sets = {
       main: new Set(),
       pr: new Set(),
       mirror: new Set(),
-      flip: new Set(),
+      flip: new Set()
     };
 
     let types = {
       main: new Map(),
       pr: new Map(),
       mirror: new Map(),
-      flip: new Map(),
+      flip: new Map()
     };
 
     let results = {
       main: new Map(),
       pr: new Map(),
       mirror: new Map(),
-      flip: new Map(),
+      flip: new Map()
     };
 
     function buildGridSkeleton(gridEl, cfg) {
@@ -338,36 +337,87 @@
 
       const frag = document.createDocumentFragment();
 
-      for (let i = 0; i < cfg.total; i++) {
-        const value = cfg.start + i;
+      if (cfg.key === "pr") {
+        const prValues = [];
+        for (let i = 1001; i <= 1020; i++) prValues.push(i);
+        for (let i = 2001; i <= 2030; i++) prValues.push(i);
 
-        const cell = document.createElement("div");
-        cell.className = "cell";
-        cell.setAttribute("role", "gridcell");
-        cell.dataset.value = String(value);
+        for (const value of prValues) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.setAttribute("role", "gridcell");
+          cell.dataset.value = String(value);
 
-        const typeEl = document.createElement("div");
-        typeEl.className = "cell-type";
-        typeEl.textContent = DEFAULT_TYPE;
+          const typeEl = document.createElement("div");
+          typeEl.className = "cell-type";
+          typeEl.textContent = DEFAULT_TYPE;
 
-        const numberEl = document.createElement("div");
-        numberEl.className = "cell-number";
-        numberEl.textContent = value;
+          const numberEl = document.createElement("div");
+          numberEl.className = "cell-number";
+          numberEl.textContent = value;
 
-        const resultEl = document.createElement("div");
-        resultEl.className = "cell-result";
-        resultEl.textContent = DEFAULT_RESULT;
+          const resultEl = document.createElement("div");
+          resultEl.className = "cell-result";
+          resultEl.textContent = DEFAULT_RESULT;
 
-        cell.appendChild(typeEl);
-        cell.appendChild(numberEl);
-        cell.appendChild(resultEl);
-        frag.appendChild(cell);
+          cell.appendChild(typeEl);
+          cell.appendChild(numberEl);
+          cell.appendChild(resultEl);
+          frag.appendChild(cell);
+        }
+      } else {
+        for (let i = 0; i < cfg.total; i++) {
+          const value = cfg.start + i;
+
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.setAttribute("role", "gridcell");
+          cell.dataset.value = String(value);
+
+          const typeEl = document.createElement("div");
+          typeEl.className = "cell-type";
+          typeEl.textContent = DEFAULT_TYPE;
+
+          const numberEl = document.createElement("div");
+          numberEl.className = "cell-number";
+          numberEl.textContent = value;
+
+          const resultEl = document.createElement("div");
+          resultEl.className = "cell-result";
+          resultEl.textContent = DEFAULT_RESULT;
+
+          cell.appendChild(typeEl);
+          cell.appendChild(numberEl);
+          cell.appendChild(resultEl);
+          frag.appendChild(cell);
+        }
       }
 
       gridEl.appendChild(frag);
     }
 
+    function getPrValues() {
+      const vals = [];
+      for (let i = 1001; i <= 1020; i++) vals.push(i);
+      for (let i = 2001; i <= 2030; i++) vals.push(i);
+      return vals;
+    }
+
     function applyStateToGrid(gridEl, set, typeMap, resultMap, cfg) {
+      if (cfg.key === "pr") {
+        const vals = getPrValues();
+        for (let i = 0; i < vals.length; i++) {
+          const value = vals[i];
+          const cell = gridEl.children[i];
+          const done = set.has(value);
+
+          cell.classList.toggle("green", done);
+          cell.querySelector(".cell-type").textContent = typeMap.get(value) || DEFAULT_TYPE;
+          cell.querySelector(".cell-result").textContent = resultMap.get(value) || DEFAULT_RESULT;
+        }
+        return;
+      }
+
       for (let i = 0; i < cfg.total; i++) {
         const value = cfg.start + i;
         const cell = gridEl.children[i];
@@ -379,25 +429,35 @@
       }
     }
 
+    function normalizeResultLabel(value) {
+      const raw = String(value || "").trim().toUpperCase();
+      if (raw === "SD" || raw === "S D" || raw === "SAVE DEFLECT") return "Save Deflect";
+      if (raw === "GOAL") return "Goal";
+      if (raw === "MISS") return "Miss";
+      if (raw === "SAVE") return "Save";
+      if (raw === "FOUL") return "Foul";
+      return value || DEFAULT_RESULT;
+    }
+
     function updateResultCounts() {
       const counts = {
-        "Goal": 0,
-        "Miss": 0,
-        "Save": 0,
+        Goal: 0,
+        Miss: 0,
+        Save: 0,
         "Save Deflect": 0,
-        "Foul": 0
+        Foul: 0
       };
 
       for (const cfg of ALL) {
         for (const n of sets[cfg.key]) {
-          const resultText = results[cfg.key].get(n) || DEFAULT_RESULT;
+          const resultText = normalizeResultLabel(results[cfg.key].get(n) || DEFAULT_RESULT);
           if (counts[resultText] !== undefined) {
             counts[resultText] += 1;
           }
         }
       }
 
-      for (const key of TRACKED_RESULTS) {
+      for (const key of Object.keys(counts)) {
         resultCountEls[key].textContent = String(counts[key]);
       }
     }
@@ -409,9 +469,7 @@
         mini[cfg.key].rem.textContent = String(cfg.total - done);
       }
 
-      const completed =
-        sets.main.size + sets.pr.size + sets.mirror.size + sets.flip.size;
-
+      const completed = sets.main.size + sets.pr.size + sets.mirror.size + sets.flip.size;
       completedCountEl.textContent = String(completed);
       remainingCountEl.textContent = String(GRAND_TOTAL - completed);
 
@@ -490,21 +548,21 @@
         main: new Set(),
         pr: new Set(),
         mirror: new Set(),
-        flip: new Set(),
+        flip: new Set()
       };
 
       types = {
         main: new Map(),
         pr: new Map(),
         mirror: new Map(),
-        flip: new Map(),
+        flip: new Map()
       };
 
       results = {
         main: new Map(),
         pr: new Map(),
         mirror: new Map(),
-        flip: new Map(),
+        flip: new Map()
       };
     }
 
@@ -520,6 +578,14 @@
       for (const n of nums) {
         if (n >= min && n <= max) {
           sets[key].add(n);
+        }
+      }
+    }
+
+    function applyPrCompletion(nums) {
+      for (const n of nums) {
+        if ((n >= 1001 && n <= 1020) || (n >= 2001 && n <= 2030)) {
+          sets.pr.add(n);
         }
       }
     }
@@ -544,12 +610,46 @@
       }
     }
 
+    function applyPrMeta(obj) {
+      for (const [rawKey, rawValue] of Object.entries(obj)) {
+        const n = parseInt(rawKey, 10);
+        if (!Number.isInteger(n)) continue;
+        if (!((n >= 1001 && n <= 1020) || (n >= 2001 && n <= 2030))) continue;
+        if (!rawValue || typeof rawValue !== "object" || Array.isArray(rawValue)) continue;
+
+        const typeText = typeof rawValue.type === "string" && rawValue.type.trim()
+          ? rawValue.type.trim()
+          : DEFAULT_TYPE;
+
+        const resultText = typeof rawValue.result === "string" && rawValue.result.trim()
+          ? rawValue.result.trim()
+          : DEFAULT_RESULT;
+
+        types.pr.set(n, typeText);
+        results.pr.set(n, resultText);
+      }
+    }
+
     function fillMissingMaps() {
-      for (const cfg of ALL) {
-        for (let n = cfg.start; n < cfg.start + cfg.total; n++) {
-          if (!types[cfg.key].has(n)) types[cfg.key].set(n, DEFAULT_TYPE);
-          if (!results[cfg.key].has(n)) results[cfg.key].set(n, DEFAULT_RESULT);
-        }
+      for (let n = 1; n <= 240; n++) {
+        if (!types.main.has(n)) types.main.set(n, DEFAULT_TYPE);
+        if (!results.main.has(n)) results.main.set(n, DEFAULT_RESULT);
+
+        if (!types.mirror.has(n)) types.mirror.set(n, DEFAULT_TYPE);
+        if (!results.mirror.has(n)) results.mirror.set(n, DEFAULT_RESULT);
+
+        if (!types.flip.has(n)) types.flip.set(n, DEFAULT_TYPE);
+        if (!results.flip.has(n)) results.flip.set(n, DEFAULT_RESULT);
+      }
+
+      for (let n = 1001; n <= 1020; n++) {
+        if (!types.pr.has(n)) types.pr.set(n, DEFAULT_TYPE);
+        if (!results.pr.has(n)) results.pr.set(n, DEFAULT_RESULT);
+      }
+
+      for (let n = 2001; n <= 2030; n++) {
+        if (!types.pr.has(n)) types.pr.set(n, DEFAULT_TYPE);
+        if (!results.pr.has(n)) results.pr.set(n, DEFAULT_RESULT);
       }
     }
 
@@ -580,12 +680,12 @@
         const flipMeta = parseMetaObject(metaJson.flip);
 
         applyCompletionForKey("main", mainNumbers, 1, 240);
-        applyCompletionForKey("pr", mainNumbers, 1001, 1050);
+        applyPrCompletion(mainNumbers);
         applyCompletionForKey("mirror", mirrorNumbers, 1, 240);
         applyCompletionForKey("flip", flipNumbers, 1, 240);
 
         applyMetaForKey("main", mainMeta, 1, 240);
-        applyMetaForKey("pr", mainMeta, 1001, 1050);
+        applyPrMeta(mainMeta);
         applyMetaForKey("mirror", mirrorMeta, 1, 240);
         applyMetaForKey("flip", flipMeta, 1, 240);
 
@@ -613,9 +713,6 @@
     buildGridSkeleton(gridEls.flip, FLIP);
 
     loadFromJson();
-
-    // Optional auto refresh every 60 seconds
-    // setInterval(loadFromJson, 60000);
   </script>
 </body>
 </html>
