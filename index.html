@@ -58,6 +58,26 @@
       padding-left: 4px;
     }
 
+    .result-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      background: #fafafa;
+    }
+
+    .result-pill {
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      border-radius: 999px;
+      background: white;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
     .boards, .boards-below {
       display: flex;
       gap: 14px;
@@ -129,21 +149,33 @@
       font-weight: 700;
       font-size: 13px;
       line-height: 1;
-      margin-bottom: 10px; 
+      margin-bottom: 3px;
     }
 
-    .cell-type {
-      font-size: 9.5px;
-      line-height: 1.05;
+    .cell-type,
+    .cell-result {
       max-width: 100%;
       white-space: normal;
       word-break: break-word;
       overflow-wrap: anywhere;
       display: -webkit-box;
       -webkit-box-orient: vertical;
+      opacity: 0.98;
+    }
+
+    .cell-type {
+      font-size: 8.5px;
+      line-height: 1.02;
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
+      margin-bottom: 2px;
+    }
+
+    .cell-result {
+      font-size: 7.5px;
+      line-height: 1.02;
       -webkit-line-clamp: 2;
       line-clamp: 2;
-      opacity: 0.98;
     }
 
     footer {
@@ -159,7 +191,8 @@
     @media (max-width: 650px) {
       :root { --cell-size: 32px; --gap: 5px; }
       .cell-number { font-size: 11px; }
-      .cell-type { font-size: 8px; }
+      .cell-type { font-size: 7px; }
+      .cell-result { font-size: 6.5px; }
     }
   </style>
 </head>
@@ -179,6 +212,14 @@
     <span class="status" id="syncStatus">Loading…</span>
     <span class="status" id="lastSync"></span>
   </header>
+
+  <section class="result-summary" aria-live="polite">
+    <div class="result-pill">Goal: <b id="countGoal">0</b></div>
+    <div class="result-pill">Miss: <b id="countMiss">0</b></div>
+    <div class="result-pill">Save: <b id="countSave">0</b></div>
+    <div class="result-pill">Save Deflect: <b id="countSaveDeflect">0</b></div>
+    <div class="result-pill">Foul: <b id="countFoul">0</b></div>
+  </section>
 
   <div class="boards">
     <section class="board">
@@ -217,11 +258,13 @@
   </div>
 
   <footer>
-    Auto-sync on open/refresh from <code>./completed/data.json</code> and <code>./completed/types.json</code>. Click <b>Sync Now</b> anytime to refresh manually.
+    Auto-sync on open/refresh from <code>./completed/data.json</code> and <code>./completed/meta.json</code>. Click <b>Sync Now</b> anytime to refresh manually.
   </footer>
 
   <script>
     const DEFAULT_TYPE = "N/A";
+    const DEFAULT_RESULT = "N/A";
+    const TRACKED_RESULTS = ["Goal", "Miss", "Save", "Save Deflect", "Foul"];
 
     const MAIN   = { key: "main",   cols: 16, total: 240, start: 1,    title: "Main Sequence" };
     const PR     = { key: "pr",     cols: 10, total: 50,  start: 1001, title: "Penalty & Referee Sequence" };
@@ -232,7 +275,7 @@
     const GRAND_TOTAL = ALL.reduce((sum, c) => sum + c.total, 0);
 
     const DATA_URL = "./completed/data.json";
-    const TYPES_URL = "./completed/types.json";
+    const META_URL = "./completed/meta.json";
 
     const completedCountEl = document.getElementById("completedCount");
     const remainingCountEl = document.getElementById("remainingCount");
@@ -242,6 +285,14 @@
     const manualSyncBtn = document.getElementById("manualSyncBtn");
     const syncStatusEl = document.getElementById("syncStatus");
     const lastSyncEl = document.getElementById("lastSync");
+
+    const resultCountEls = {
+      "Goal": document.getElementById("countGoal"),
+      "Miss": document.getElementById("countMiss"),
+      "Save": document.getElementById("countSave"),
+      "Save Deflect": document.getElementById("countSaveDeflect"),
+      "Foul": document.getElementById("countFoul")
+    };
 
     totalCountEl.textContent = String(GRAND_TOTAL);
 
@@ -273,6 +324,13 @@
       flip: new Map(),
     };
 
+    let results = {
+      main: new Map(),
+      pr: new Map(),
+      mirror: new Map(),
+      flip: new Map(),
+    };
+
     function buildGridSkeleton(gridEl, cfg) {
       gridEl.style.gridTemplateColumns = `repeat(${cfg.cols}, var(--cell-size))`;
       gridEl.innerHTML = "";
@@ -295,23 +353,51 @@
         typeEl.className = "cell-type";
         typeEl.textContent = DEFAULT_TYPE;
 
+        const resultEl = document.createElement("div");
+        resultEl.className = "cell-result";
+        resultEl.textContent = DEFAULT_RESULT;
+
         cell.appendChild(numberEl);
         cell.appendChild(typeEl);
+        cell.appendChild(resultEl);
         frag.appendChild(cell);
       }
 
       gridEl.appendChild(frag);
     }
 
-    function applyStateToGrid(gridEl, set, typeMap, cfg) {
+    function applyStateToGrid(gridEl, set, typeMap, resultMap, cfg) {
       for (let i = 0; i < cfg.total; i++) {
         const value = cfg.start + i;
         const cell = gridEl.children[i];
         const done = set.has(value);
-        const typeText = typeMap.get(value) || DEFAULT_TYPE;
 
         cell.classList.toggle("green", done);
-        cell.querySelector(".cell-type").textContent = typeText;
+        cell.querySelector(".cell-type").textContent = typeMap.get(value) || DEFAULT_TYPE;
+        cell.querySelector(".cell-result").textContent = resultMap.get(value) || DEFAULT_RESULT;
+      }
+    }
+
+    function updateResultCounts() {
+      const counts = {
+        "Goal": 0,
+        "Miss": 0,
+        "Save": 0,
+        "Save Deflect": 0,
+        "Foul": 0
+      };
+
+      for (const cfg of ALL) {
+        for (const n of sets[cfg.key]) {
+          const resultText = results[cfg.key].get(n) || DEFAULT_RESULT;
+          if (counts[resultText] !== undefined) {
+            counts[resultText] += 1;
+          }
+        }
+      }
+
+      for (const key of TRACKED_RESULTS) {
+        resultCountEls[key].textContent = String(counts[key]);
       }
     }
 
@@ -327,11 +413,13 @@
 
       completedCountEl.textContent = String(completed);
       remainingCountEl.textContent = String(GRAND_TOTAL - completed);
+
+      updateResultCounts();
     }
 
     function render() {
       for (const cfg of ALL) {
-        applyStateToGrid(gridEls[cfg.key], sets[cfg.key], types[cfg.key], cfg);
+        applyStateToGrid(gridEls[cfg.key], sets[cfg.key], types[cfg.key], results[cfg.key], cfg);
       }
       updateAllCounts();
     }
@@ -354,16 +442,16 @@
     function exportTxt() {
       const lines = [
         MAIN.title,
-        ...getSorted(sets.main).map(n => `${n} - ${types.main.get(n) || DEFAULT_TYPE}`),
+        ...getSorted(sets.main).map(n => `${n} - ${types.main.get(n) || DEFAULT_TYPE} - ${results.main.get(n) || DEFAULT_RESULT}`),
         "",
         PR.title,
-        ...getSorted(sets.pr).map(n => `${n} - ${types.pr.get(n) || DEFAULT_TYPE}`),
+        ...getSorted(sets.pr).map(n => `${n} - ${types.pr.get(n) || DEFAULT_TYPE} - ${results.pr.get(n) || DEFAULT_RESULT}`),
         "",
         MIRROR.title,
-        ...getSorted(sets.mirror).map(n => `${n} - ${types.mirror.get(n) || DEFAULT_TYPE}`),
+        ...getSorted(sets.mirror).map(n => `${n} - ${types.mirror.get(n) || DEFAULT_TYPE} - ${results.mirror.get(n) || DEFAULT_RESULT}`),
         "",
         FLIP.title,
-        ...getSorted(sets.flip).map(n => `${n} - ${types.flip.get(n) || DEFAULT_TYPE}`),
+        ...getSorted(sets.flip).map(n => `${n} - ${types.flip.get(n) || DEFAULT_TYPE} - ${results.flip.get(n) || DEFAULT_RESULT}`),
         ""
       ].join("\n");
 
@@ -373,20 +461,20 @@
     function exportCsv() {
       const lines = [
         MAIN.title,
-        "BlockNumber,BlockType",
-        ...getSorted(sets.main).map(n => `${n},"${(types.main.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}"`),
+        "BlockNumber,BlockType,BlockResult",
+        ...getSorted(sets.main).map(n => `${n},"${(types.main.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}","${(results.main.get(n) || DEFAULT_RESULT).replace(/"/g, '""')}"`),
         "",
         PR.title,
-        "BlockNumber,BlockType",
-        ...getSorted(sets.pr).map(n => `${n},"${(types.pr.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}"`),
+        "BlockNumber,BlockType,BlockResult",
+        ...getSorted(sets.pr).map(n => `${n},"${(types.pr.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}","${(results.pr.get(n) || DEFAULT_RESULT).replace(/"/g, '""')}"`),
         "",
         MIRROR.title,
-        "BlockNumber,BlockType",
-        ...getSorted(sets.mirror).map(n => `${n},"${(types.mirror.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}"`),
+        "BlockNumber,BlockType,BlockResult",
+        ...getSorted(sets.mirror).map(n => `${n},"${(types.mirror.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}","${(results.mirror.get(n) || DEFAULT_RESULT).replace(/"/g, '""')}"`),
         "",
         FLIP.title,
-        "BlockNumber,BlockType",
-        ...getSorted(sets.flip).map(n => `${n},"${(types.flip.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}"`),
+        "BlockNumber,BlockType,BlockResult",
+        ...getSorted(sets.flip).map(n => `${n},"${(types.flip.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}","${(results.flip.get(n) || DEFAULT_RESULT).replace(/"/g, '""')}"`),
         ""
       ].join("\r\n") + "\r\n";
 
@@ -410,13 +498,20 @@
         mirror: new Map(),
         flip: new Map(),
       };
+
+      results = {
+        main: new Map(),
+        pr: new Map(),
+        mirror: new Map(),
+        flip: new Map(),
+      };
     }
 
     function parseNumberArray(arr) {
       return Array.isArray(arr) ? arr.filter(n => Number.isInteger(n)) : [];
     }
 
-    function parseTypeObject(obj) {
+    function parseMetaObject(obj) {
       return obj && typeof obj === "object" && !Array.isArray(obj) ? obj : {};
     }
 
@@ -428,22 +523,31 @@
       }
     }
 
-    function applyTypesForKey(key, obj, min, max) {
+    function applyMetaForKey(key, obj, min, max) {
       for (const [rawKey, rawValue] of Object.entries(obj)) {
         const n = parseInt(rawKey, 10);
         if (!Number.isInteger(n)) continue;
         if (n < min || n > max) continue;
-        if (typeof rawValue !== "string" || !rawValue.trim()) continue;
-        types[key].set(n, rawValue.trim());
+        if (!rawValue || typeof rawValue !== "object" || Array.isArray(rawValue)) continue;
+
+        const typeText = typeof rawValue.type === "string" && rawValue.type.trim()
+          ? rawValue.type.trim()
+          : DEFAULT_TYPE;
+
+        const resultText = typeof rawValue.result === "string" && rawValue.result.trim()
+          ? rawValue.result.trim()
+          : DEFAULT_RESULT;
+
+        types[key].set(n, typeText);
+        results[key].set(n, resultText);
       }
     }
 
-    function fillMissingTypes() {
+    function fillMissingMaps() {
       for (const cfg of ALL) {
         for (let n = cfg.start; n < cfg.start + cfg.total; n++) {
-          if (!types[cfg.key].has(n)) {
-            types[cfg.key].set(n, DEFAULT_TYPE);
-          }
+          if (!types[cfg.key].has(n)) types[cfg.key].set(n, DEFAULT_TYPE);
+          if (!results[cfg.key].has(n)) results[cfg.key].set(n, DEFAULT_RESULT);
         }
       }
     }
@@ -453,16 +557,16 @@
       manualSyncBtn.disabled = true;
 
       try {
-        const [dataRes, typesRes] = await Promise.all([
+        const [dataRes, metaRes] = await Promise.all([
           fetch(DATA_URL + "?ts=" + Date.now(), { cache: "no-store" }),
-          fetch(TYPES_URL + "?ts=" + Date.now(), { cache: "no-store" })
+          fetch(META_URL + "?ts=" + Date.now(), { cache: "no-store" })
         ]);
 
         if (!dataRes.ok) throw new Error(`data.json fetch failed: ${dataRes.status} ${dataRes.statusText}`);
-        if (!typesRes.ok) throw new Error(`types.json fetch failed: ${typesRes.status} ${typesRes.statusText}`);
+        if (!metaRes.ok) throw new Error(`meta.json fetch failed: ${metaRes.status} ${metaRes.statusText}`);
 
         const dataJson = await dataRes.json();
-        const typesJson = await typesRes.json();
+        const metaJson = await metaRes.json();
 
         resetState();
 
@@ -470,21 +574,21 @@
         const mirrorNumbers = parseNumberArray(dataJson.mirror);
         const flipNumbers = parseNumberArray(dataJson.flip);
 
-        const mainTypes = parseTypeObject(typesJson.main);
-        const mirrorTypes = parseTypeObject(typesJson.mirror);
-        const flipTypes = parseTypeObject(typesJson.flip);
+        const mainMeta = parseMetaObject(metaJson.main);
+        const mirrorMeta = parseMetaObject(metaJson.mirror);
+        const flipMeta = parseMetaObject(metaJson.flip);
 
         applyCompletionForKey("main", mainNumbers, 1, 240);
         applyCompletionForKey("pr", mainNumbers, 1001, 1050);
         applyCompletionForKey("mirror", mirrorNumbers, 1, 240);
         applyCompletionForKey("flip", flipNumbers, 1, 240);
 
-        applyTypesForKey("main", mainTypes, 1, 240);
-        applyTypesForKey("pr", mainTypes, 1001, 1050);
-        applyTypesForKey("mirror", mirrorTypes, 1, 240);
-        applyTypesForKey("flip", flipTypes, 1, 240);
+        applyMetaForKey("main", mainMeta, 1, 240);
+        applyMetaForKey("pr", mainMeta, 1001, 1050);
+        applyMetaForKey("mirror", mirrorMeta, 1, 240);
+        applyMetaForKey("flip", flipMeta, 1, 240);
 
-        fillMissingTypes();
+        fillMissingMaps();
 
         render();
 
@@ -507,7 +611,6 @@
     buildGridSkeleton(gridEls.mirror, MIRROR);
     buildGridSkeleton(gridEls.flip, FLIP);
 
-    // Auto sync on open / refresh
     loadFromJson();
 
     // Optional auto refresh every 60 seconds
