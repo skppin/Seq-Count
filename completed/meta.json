@@ -1,11 +1,11 @@
 ﻿{
   "main": {
-    "1011": { "type": "P T", "result": "N/A" },
-    "1012": { "type": "P T", "result": "N/A" },
-    "1013": { "type": "P T", "result": "N/A" },
-    "1014": { "type": "P T", "result": "N/A" },
-    "1015": { "type": "P T", "result": "N/A" },
-    "1016": { "type": "P T", "result": "N/A" },
+    "1011": { "type": "REF", "result": "N/A" },
+    "1012": { "type": "REF", "result": "N/A" },
+    "1013": { "type": "REF", "result": "N/A" },
+    "1014": { "type": "REF", "result": "N/A" },
+    "1015": { "type": "REF", "result": "N/A" },
+    "1016": { "type": "REF", "result": "N/A" },
 
     "1001": { "type": "REF", "result": "YC" },
     "1002": { "type": "REF", "result": "FKL" },
