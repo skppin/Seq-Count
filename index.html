@@ -128,13 +128,13 @@
       height: var(--cell-size);
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
       border: 1px solid var(--border);
       border-radius: 10px;
       background: #fff;
       box-shadow: 0 1px 0 rgba(0,0,0,0.03);
-      padding: 1px 2px 3px 2px;
+      padding: 4px 2px;
       text-align: center;
       overflow: hidden;
     }
@@ -145,37 +145,38 @@
       color: #0b3a1e;
     }
 
-    .cell-number {
-      font-weight: 700;
-      font-size: 13px;
+    .cell-type {
+      font-size: 10px;
       line-height: 1;
-      margin-bottom: 3px;
-    }
-
-    .cell-type,
-    .cell-result {
-      max-width: 100%;
+      width: 100%;
+      text-align: center;
       white-space: normal;
       word-break: break-word;
       overflow-wrap: anywhere;
       display: -webkit-box;
       -webkit-box-orient: vertical;
-      opacity: 0.98;
-    }
-
-    .cell-type {
-      font-size: 8.5px;
-      line-height: 1.02;
       -webkit-line-clamp: 1;
       line-clamp: 1;
-      margin-bottom: 2px;
+    }
+
+    .cell-number {
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 1;
     }
 
     .cell-result {
-      font-size: 7.5px;
-      line-height: 1.02;
-      -webkit-line-clamp: 2;
-      line-clamp: 2;
+      font-size: 10px;
+      line-height: 1;
+      width: 100%;
+      text-align: center;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
     }
 
     footer {
@@ -190,9 +191,9 @@
 
     @media (max-width: 650px) {
       :root { --cell-size: 32px; --gap: 5px; }
-      .cell-number { font-size: 11px; }
-      .cell-type { font-size: 7px; }
-      .cell-result { font-size: 6.5px; }
+      .cell-number { font-size: 12px; }
+      .cell-type { font-size: 8px; }
+      .cell-result { font-size: 8px; }
     }
   </style>
 </head>
@@ -345,20 +346,20 @@
         cell.setAttribute("role", "gridcell");
         cell.dataset.value = String(value);
 
-        const numberEl = document.createElement("div");
-        numberEl.className = "cell-number";
-        numberEl.textContent = value;
-
         const typeEl = document.createElement("div");
         typeEl.className = "cell-type";
         typeEl.textContent = DEFAULT_TYPE;
+
+        const numberEl = document.createElement("div");
+        numberEl.className = "cell-number";
+        numberEl.textContent = value;
 
         const resultEl = document.createElement("div");
         resultEl.className = "cell-result";
         resultEl.textContent = DEFAULT_RESULT;
 
-        cell.appendChild(numberEl);
         cell.appendChild(typeEl);
+        cell.appendChild(numberEl);
         cell.appendChild(resultEl);
         frag.appendChild(cell);
       }
