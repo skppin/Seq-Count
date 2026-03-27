@@ -136,6 +136,10 @@
                             "type":  "K O",
                             "result":  "Miss"
                         },
+                 "102":  {
+                             "type":  "COR",
+                             "result":  "Miss"
+                         },
                  "106":  {
                              "type":  "K O",
                              "result":  "Miss"
@@ -158,6 +162,10 @@
                          },
                  "125":  {
                              "type":  "G K",
+                             "result":  "Miss"
+                         },
+                 "129":  {
+                             "type":  "K O",
                              "result":  "Miss"
                          },
                  "134":  {
