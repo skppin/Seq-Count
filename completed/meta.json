@@ -105,8 +105,8 @@
                             "result":  "Foul"
                         },
                  "79":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "G K",
+                            "result":  "Miss"
                         },
                  "84":  {
                             "type":  "K O",
@@ -125,8 +125,8 @@
                             "result":  "Miss"
                         },
                  "90":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "K O",
+                            "result":  "Miss"
                         },
                  "95":  {
                             "type":  "F K",
@@ -169,16 +169,16 @@
                              "result":  "Foul"
                          },
                  "147":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "K O",
+                             "result":  "S D"
                          },
                  "148":  {
                              "type":  "G K",
                              "result":  "Save"
                          },
                  "149":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "G K",
+                             "result":  "S D"
                          },
                  "160":  {
                              "type":  "K O",
@@ -195,6 +195,10 @@
                  "187":  {
                              "type":  "K O",
                              "result":  "SD"
+                         },
+                 "209":  {
+                             "type":  "COR",
+                             "result":  "Save"
                          },
                  "211":  {
                              "type":  "K O",
@@ -213,6 +217,10 @@
                              "result":  "Foul"
                          },
                  "215":  {
+                             "type":  "K O",
+                             "result":  "Foul"
+                         },
+                 "216":  {
                              "type":  "K O",
                              "result":  "Foul"
                          },
@@ -241,8 +249,8 @@
                              "result":  "Foul"
                          },
                  "224":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "G K",
+                             "result":  "Foul"
                          },
                  "1001":  {
                               "type":  "REF",
