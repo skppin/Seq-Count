@@ -1,9 +1,5 @@
 ﻿{
     "main":  {
-                 "1":  {
-                           "type":  "K O",
-                           "result":  "Miss"
-                       },
                  "7":  {
                            "type":  "K O",
                            "result":  "Goal"
