@@ -64,6 +64,10 @@
                             "type":  "K O",
                             "result":  "Goal"
                         },
+                 "54":  {
+                            "type":  "F K",
+                            "result":  "Goal"
+                        },
                  "59":  {
                             "type":  "K O",
                             "result":  "Goal"
@@ -156,6 +160,10 @@
                              "type":  "G K",
                              "result":  "Foul"
                          },
+                 "124":  {
+                             "type":  "F K",
+                             "result":  "Miss"
+                         },
                  "125":  {
                              "type":  "G K",
                              "result":  "Miss"
@@ -187,6 +195,10 @@
                  "160":  {
                              "type":  "K O",
                              "result":  "SD"
+                         },
+                 "174":  {
+                             "type":  "COR",
+                             "result":  "Save"
                          },
                  "177":  {
                              "type":  "K O",
