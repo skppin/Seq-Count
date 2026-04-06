@@ -259,7 +259,7 @@
   </div>
 
   <footer>
-    Auto-sync on open/refresh from <code>./completed/data.json</code> and <code>./completed/meta.json</code>. Click <b>Sync Now</b> anytime to refresh manually.
+    Auto-sync on open/refresh from <code>./completed/meta.json</code>. Click <b>Sync Now</b> anytime to refresh manually.
   </footer>
 
   <script>
@@ -273,8 +273,6 @@
     const ALL = [MAIN, PR, MIRROR, FLIP];
 
     const GRAND_TOTAL = 240 + 50 + 240 + 240;
-
-    const DATA_URL = "./completed/data.json";
     const META_URL = "./completed/meta.json";
 
     const completedCountEl = document.getElementById("completedCount");
@@ -334,7 +332,6 @@
     function buildGridSkeleton(gridEl, cfg) {
       gridEl.style.gridTemplateColumns = `repeat(${cfg.cols}, var(--cell-size))`;
       gridEl.innerHTML = "";
-
       const frag = document.createDocumentFragment();
 
       if (cfg.key === "pr") {
@@ -451,9 +448,7 @@
       for (const cfg of ALL) {
         for (const n of sets[cfg.key]) {
           const resultText = normalizeResultLabel(results[cfg.key].get(n) || DEFAULT_RESULT);
-          if (counts[resultText] !== undefined) {
-            counts[resultText] += 1;
-          }
+          if (counts[resultText] !== undefined) counts[resultText] += 1;
         }
       }
 
@@ -472,7 +467,6 @@
       const completed = sets.main.size + sets.pr.size + sets.mirror.size + sets.flip.size;
       completedCountEl.textContent = String(completed);
       remainingCountEl.textContent = String(GRAND_TOTAL - completed);
-
       updateResultCounts();
     }
 
@@ -566,47 +560,20 @@
       };
     }
 
-    function parseNumberArray(arr) {
-      return Array.isArray(arr) ? arr.filter(n => Number.isInteger(n)) : [];
-    }
-
     function parseMetaObject(obj) {
       return obj && typeof obj === "object" && !Array.isArray(obj) ? obj : {};
     }
 
-    function applyCompletionForKey(key, nums, min, max) {
-      for (const n of nums) {
-        if (n >= min && n <= max) {
-          sets[key].add(n);
-        }
-      }
-    }
-
-    function applyPrCompletion(nums) {
-      for (const n of nums) {
-        if ((n >= 1001 && n <= 1020) || (n >= 2001 && n <= 2030)) {
-          sets.pr.add(n);
-        }
-      }
-    }
-
-    function applyMetaForKey(key, obj, min, max) {
+    function applyMainMeta(obj) {
       for (const [rawKey, rawValue] of Object.entries(obj)) {
         const n = parseInt(rawKey, 10);
         if (!Number.isInteger(n)) continue;
-        if (n < min || n > max) continue;
+        if (n < 1 || n > 240) continue;
         if (!rawValue || typeof rawValue !== "object" || Array.isArray(rawValue)) continue;
 
-        const typeText = typeof rawValue.type === "string" && rawValue.type.trim()
-          ? rawValue.type.trim()
-          : DEFAULT_TYPE;
-
-        const resultText = typeof rawValue.result === "string" && rawValue.result.trim()
-          ? rawValue.result.trim()
-          : DEFAULT_RESULT;
-
-        types[key].set(n, typeText);
-        results[key].set(n, resultText);
+        sets.main.add(n);
+        types.main.set(n, typeof rawValue.type === "string" && rawValue.type.trim() ? rawValue.type.trim() : DEFAULT_TYPE);
+        results.main.set(n, typeof rawValue.result === "string" && rawValue.result.trim() ? rawValue.result.trim() : DEFAULT_RESULT);
       }
     }
 
@@ -617,16 +584,22 @@
         if (!((n >= 1001 && n <= 1020) || (n >= 2001 && n <= 2030))) continue;
         if (!rawValue || typeof rawValue !== "object" || Array.isArray(rawValue)) continue;
 
-        const typeText = typeof rawValue.type === "string" && rawValue.type.trim()
-          ? rawValue.type.trim()
-          : DEFAULT_TYPE;
+        sets.pr.add(n);
+        types.pr.set(n, typeof rawValue.type === "string" && rawValue.type.trim() ? rawValue.type.trim() : DEFAULT_TYPE);
+        results.pr.set(n, typeof rawValue.result === "string" && rawValue.result.trim() ? rawValue.result.trim() : DEFAULT_RESULT);
+      }
+    }
 
-        const resultText = typeof rawValue.result === "string" && rawValue.result.trim()
-          ? rawValue.result.trim()
-          : DEFAULT_RESULT;
+    function applyGenericMeta(key, obj) {
+      for (const [rawKey, rawValue] of Object.entries(obj)) {
+        const n = parseInt(rawKey, 10);
+        if (!Number.isInteger(n)) continue;
+        if (n < 1 || n > 240) continue;
+        if (!rawValue || typeof rawValue !== "object" || Array.isArray(rawValue)) continue;
 
-        types.pr.set(n, typeText);
-        results.pr.set(n, resultText);
+        sets[key].add(n);
+        types[key].set(n, typeof rawValue.type === "string" && rawValue.type.trim() ? rawValue.type.trim() : DEFAULT_TYPE);
+        results[key].set(n, typeof rawValue.result === "string" && rawValue.result.trim() ? rawValue.result.trim() : DEFAULT_RESULT);
       }
     }
 
@@ -658,39 +631,23 @@
       manualSyncBtn.disabled = true;
 
       try {
-        const [dataRes, metaRes] = await Promise.all([
-          fetch(DATA_URL + "?ts=" + Date.now(), { cache: "no-store" }),
-          fetch(META_URL + "?ts=" + Date.now(), { cache: "no-store" })
-        ]);
-
-        if (!dataRes.ok) throw new Error(`data.json fetch failed: ${dataRes.status} ${dataRes.statusText}`);
+        const metaRes = await fetch(META_URL + "?ts=" + Date.now(), { cache: "no-store" });
         if (!metaRes.ok) throw new Error(`meta.json fetch failed: ${metaRes.status} ${metaRes.statusText}`);
 
-        const dataJson = await dataRes.json();
         const metaJson = await metaRes.json();
 
         resetState();
-
-        const mainNumbers = parseNumberArray(dataJson.main);
-        const mirrorNumbers = parseNumberArray(dataJson.mirror);
-        const flipNumbers = parseNumberArray(dataJson.flip);
 
         const mainMeta = parseMetaObject(metaJson.main);
         const mirrorMeta = parseMetaObject(metaJson.mirror);
         const flipMeta = parseMetaObject(metaJson.flip);
 
-        applyCompletionForKey("main", mainNumbers, 1, 240);
-        applyPrCompletion(mainNumbers);
-        applyCompletionForKey("mirror", mirrorNumbers, 1, 240);
-        applyCompletionForKey("flip", flipNumbers, 1, 240);
-
-        applyMetaForKey("main", mainMeta, 1, 240);
+        applyMainMeta(mainMeta);
         applyPrMeta(mainMeta);
-        applyMetaForKey("mirror", mirrorMeta, 1, 240);
-        applyMetaForKey("flip", flipMeta, 1, 240);
+        applyGenericMeta("mirror", mirrorMeta);
+        applyGenericMeta("flip", flipMeta);
 
         fillMissingMaps();
-
         render();
 
         syncStatusEl.textContent = "Synced ✓";
