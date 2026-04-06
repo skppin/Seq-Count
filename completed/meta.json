@@ -61,8 +61,8 @@
                             "result":  "Goal"
                         },
                  "45":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "G K",
+                            "result":  "Goal"
                         },
                  "47":  {
                             "type":  "K O",
@@ -313,6 +313,9 @@
 
                },
     "flip":  {
-
+                 "214":  {
+                             "type":  "G K",
+                             "result":  "Foul"
+                         }
              }
 }
