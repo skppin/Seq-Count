@@ -56,6 +56,10 @@
                             "type":  "G K",
                             "result":  "Goal"
                         },
+                 "28":  {
+                            "type":  "N/A",
+                            "result":  "N/A"
+                        },
                  "29":  {
                             "type":  "K O",
                             "result":  "Goal"
@@ -87,6 +91,10 @@
                  "45":  {
                             "type":  "G K",
                             "result":  "Goal"
+                        },
+                 "53":  {
+                            "type":  "N/A",
+                            "result":  "N/A"
                         },
                  "54":  {
                             "type":  "F K",
@@ -163,6 +171,10 @@
                  "90":  {
                             "type":  "K O",
                             "result":  "Miss"
+                        },
+                 "91":  {
+                            "type":  "N/A",
+                            "result":  "N/A"
                         },
                  "95":  {
                             "type":  "F K",
