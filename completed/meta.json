@@ -1,5 +1,13 @@
 ﻿{
     "main":  {
+                 "2":  {
+                           "type":  "K O",
+                           "result":  "Goal"
+                       },
+                 "3":  {
+                           "type":  "K O",
+                           "result":  "Goal"
+                       },
                  "7":  {
                            "type":  "K O",
                            "result":  "Goal"
@@ -10,6 +18,10 @@
                        },
                  "10":  {
                             "type":  "K O",
+                            "result":  "Goal"
+                        },
+                 "16":  {
+                            "type":  "G K",
                             "result":  "Goal"
                         },
                  "17":  {
@@ -36,8 +48,16 @@
                             "type":  "F K",
                             "result":  "Goal"
                         },
+                 "26":  {
+                            "type":  "K O",
+                            "result":  "Goal"
+                        },
                  "27":  {
                             "type":  "G K",
+                            "result":  "Goal"
+                        },
+                 "29":  {
+                            "type":  "K O",
                             "result":  "Goal"
                         },
                  "32":  {
@@ -45,6 +65,10 @@
                             "result":  "Goal"
                         },
                  "34":  {
+                            "type":  "COR",
+                            "result":  "Goal"
+                        },
+                 "35":  {
                             "type":  "COR",
                             "result":  "Goal"
                         },
@@ -64,12 +88,16 @@
                             "type":  "G K",
                             "result":  "Goal"
                         },
-                 "47":  {
-                            "type":  "K O",
-                            "result":  "Goal"
-                        },
                  "54":  {
                             "type":  "F K",
+                            "result":  "Goal"
+                        },
+                 "55":  {
+                            "type":  "G K",
+                            "result":  "Goal"
+                        },
+                 "58":  {
+                            "type":  "G K",
                             "result":  "Goal"
                         },
                  "59":  {
@@ -78,6 +106,10 @@
                         },
                  "64":  {
                             "type":  "K O",
+                            "result":  "Goal"
+                        },
+                 "66":  {
+                            "type":  "COR",
                             "result":  "Goal"
                         },
                  "68":  {
@@ -144,6 +176,10 @@
                              "type":  "COR",
                              "result":  "Miss"
                          },
+                 "105":  {
+                             "type":  "COR",
+                             "result":  "Miss"
+                         },
                  "106":  {
                              "type":  "K O",
                              "result":  "Miss"
@@ -164,6 +200,14 @@
                              "type":  "G K",
                              "result":  "Foul"
                          },
+                 "115":  {
+                             "type":  "G K",
+                             "result":  "Miss"
+                         },
+                 "123":  {
+                             "type":  "COR",
+                             "result":  "Miss"
+                         },
                  "124":  {
                              "type":  "F K",
                              "result":  "Miss"
@@ -178,6 +222,14 @@
                          },
                  "134":  {
                              "type":  "K O",
+                             "result":  "Miss"
+                         },
+                 "136":  {
+                             "type":  "COR",
+                             "result":  "Miss"
+                         },
+                 "138":  {
+                             "type":  "COR",
                              "result":  "Miss"
                          },
                  "142":  {
@@ -196,9 +248,25 @@
                              "type":  "G K",
                              "result":  "S D"
                          },
+                 "156":  {
+                             "type":  "G K",
+                             "result":  "S D"
+                         },
+                 "158":  {
+                             "type":  "G K",
+                             "result":  "S D"
+                         },
                  "160":  {
                              "type":  "K O",
                              "result":  "SD"
+                         },
+                 "161":  {
+                             "type":  "G K",
+                             "result":  "S D"
+                         },
+                 "169":  {
+                             "type":  "K O",
+                             "result":  "S D"
                          },
                  "174":  {
                              "type":  "COR",
@@ -212,9 +280,21 @@
                              "type":  "G K",
                              "result":  "Save"
                          },
+                 "185":  {
+                             "type":  "G K",
+                             "result":  "S D"
+                         },
                  "187":  {
                              "type":  "K O",
                              "result":  "SD"
+                         },
+                 "195":  {
+                             "type":  "G K",
+                             "result":  "S D"
+                         },
+                 "198":  {
+                             "type":  "G K",
+                             "result":  "Miss"
                          },
                  "209":  {
                              "type":  "COR",
@@ -250,6 +330,10 @@
                          },
                  "218":  {
                              "type":  "K O",
+                             "result":  "Foul"
+                         },
+                 "219":  {
+                             "type":  "G K",
                              "result":  "Foul"
                          },
                  "220":  {
@@ -313,9 +397,6 @@
 
                },
     "flip":  {
-                 "214_F":  {
-                             "type":  "G K",
-                             "result":  "Foul"
-                         }
+
              }
 }
