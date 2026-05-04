@@ -44,6 +44,10 @@
                             "type":  "G K",
                             "result":  "Goal"
                         },
+                 "22":  {
+                            "type":  "N/A",
+                            "result":  "N/A"
+                        },
                  "25":  {
                             "type":  "F K",
                             "result":  "Goal"
@@ -112,6 +116,10 @@
                             "type":  "K O",
                             "result":  "Goal"
                         },
+                 "60":  {
+                            "type":  "N/A",
+                            "result":  "N/A"
+                        },
                  "64":  {
                             "type":  "K O",
                             "result":  "Goal"
@@ -176,6 +184,10 @@
                             "type":  "N/A",
                             "result":  "N/A"
                         },
+                 "92":  {
+                            "type":  "N/A",
+                            "result":  "N/A"
+                        },
                  "95":  {
                             "type":  "F K",
                             "result":  "Miss"
@@ -187,6 +199,10 @@
                  "102":  {
                              "type":  "COR",
                              "result":  "Miss"
+                         },
+                 "104":  {
+                             "type":  "N/A",
+                             "result":  "N/A"
                          },
                  "105":  {
                              "type":  "COR",
@@ -228,6 +244,10 @@
                              "type":  "G K",
                              "result":  "Miss"
                          },
+                 "127":  {
+                             "type":  "N/A",
+                             "result":  "N/A"
+                         },
                  "129":  {
                              "type":  "K O",
                              "result":  "Miss"
@@ -243,6 +263,10 @@
                  "138":  {
                              "type":  "COR",
                              "result":  "Miss"
+                         },
+                 "141":  {
+                             "type":  "N/A",
+                             "result":  "N/A"
                          },
                  "142":  {
                              "type":  "K O",
@@ -367,6 +391,10 @@
                  "224":  {
                              "type":  "G K",
                              "result":  "Foul"
+                         },
+                 "230":  {
+                             "type":  "N/A",
+                             "result":  "N/A"
                          },
                  "1001":  {
                               "type":  "REF",
