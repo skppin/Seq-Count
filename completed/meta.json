@@ -8,6 +8,10 @@
                            "type":  "K O",
                            "result":  "Goal"
                        },
+                 "5":  {
+                           "type":  "N/A",
+                           "result":  "N/A"
+                       },
                  "7":  {
                            "type":  "K O",
                            "result":  "Goal"
@@ -245,6 +249,10 @@
                              "result":  "Miss"
                          },
                  "127":  {
+                             "type":  "N/A",
+                             "result":  "N/A"
+                         },
+                 "128":  {
                              "type":  "N/A",
                              "result":  "N/A"
                          },
