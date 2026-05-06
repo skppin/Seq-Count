@@ -112,6 +112,10 @@
                             "type":  "G K",
                             "result":  "Goal"
                         },
+                 "57":  {
+                            "type":  "N/A",
+                            "result":  "N/A"
+                        },
                  "58":  {
                             "type":  "G K",
                             "result":  "Goal"
@@ -163,6 +167,10 @@
                  "79":  {
                             "type":  "G K",
                             "result":  "Miss"
+                        },
+                 "80":  {
+                            "type":  "N/A",
+                            "result":  "N/A"
                         },
                  "84":  {
                             "type":  "K O",
@@ -260,6 +268,10 @@
                              "type":  "K O",
                              "result":  "Miss"
                          },
+                 "130":  {
+                             "type":  "N/A",
+                             "result":  "N/A"
+                         },
                  "134":  {
                              "type":  "K O",
                              "result":  "Miss"
@@ -291,6 +303,10 @@
                  "149":  {
                              "type":  "G K",
                              "result":  "S D"
+                         },
+                 "150":  {
+                             "type":  "N/A",
+                             "result":  "N/A"
                          },
                  "156":  {
                              "type":  "G K",
