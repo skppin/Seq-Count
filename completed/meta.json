@@ -1,5 +1,9 @@
 ﻿{
     "main":  {
+                 "1":  {
+                           "type":  "N/A",
+                           "result":  "N/A"
+                       },
                  "2":  {
                            "type":  "K O",
                            "result":  "Goal"
@@ -128,6 +132,10 @@
                             "type":  "N/A",
                             "result":  "N/A"
                         },
+                 "63":  {
+                            "type":  "N/A",
+                            "result":  "N/A"
+                        },
                  "64":  {
                             "type":  "K O",
                             "result":  "Goal"
@@ -204,6 +212,10 @@
                             "type":  "F K",
                             "result":  "Miss"
                         },
+                 "98":  {
+                            "type":  "N/A",
+                            "result":  "N/A"
+                        },
                  "99":  {
                             "type":  "K O",
                             "result":  "Miss"
@@ -269,6 +281,10 @@
                              "result":  "Miss"
                          },
                  "130":  {
+                             "type":  "N/A",
+                             "result":  "N/A"
+                         },
+                 "133":  {
                              "type":  "N/A",
                              "result":  "N/A"
                          },
@@ -356,6 +372,10 @@
                              "type":  "G K",
                              "result":  "Miss"
                          },
+                 "199":  {
+                             "type":  "N/A",
+                             "result":  "N/A"
+                         },
                  "209":  {
                              "type":  "COR",
                              "result":  "Save"
@@ -420,6 +440,10 @@
                              "type":  "N/A",
                              "result":  "N/A"
                          },
+                 "231":  {
+                             "type":  "N/A",
+                             "result":  "N/A"
+                         },
                  "1001":  {
                               "type":  "REF",
                               "result":  "YC"
@@ -454,6 +478,10 @@
                           },
                  "2005":  {
                               "type":  "P T",
+                              "result":  "N/A"
+                          },
+                 "2007":  {
+                              "type":  "N/A",
                               "result":  "N/A"
                           }
              },
