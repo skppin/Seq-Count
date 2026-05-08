@@ -1,8 +1,8 @@
 ﻿{
     "main":  {
                  "1":  {
-                           "type":  "N/A",
-                           "result":  "N/A"
+                           "type":  "K O",
+                           "result":  "Goal"
                        },
                  "2":  {
                            "type":  "K O",
@@ -13,8 +13,8 @@
                            "result":  "Goal"
                        },
                  "5":  {
-                           "type":  "N/A",
-                           "result":  "N/A"
+                           "type":  "G K",
+                           "result":  "Goal"
                        },
                  "7":  {
                            "type":  "K O",
@@ -53,8 +53,8 @@
                             "result":  "Goal"
                         },
                  "22":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "F K",
+                            "result":  "Goal"
                         },
                  "25":  {
                             "type":  "F K",
@@ -69,8 +69,8 @@
                             "result":  "Goal"
                         },
                  "28":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "F K",
+                            "result":  "Goal"
                         },
                  "29":  {
                             "type":  "K O",
@@ -105,8 +105,8 @@
                             "result":  "Goal"
                         },
                  "53":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "COR",
+                            "result":  "Goal"
                         },
                  "54":  {
                             "type":  "F K",
@@ -117,8 +117,8 @@
                             "result":  "Goal"
                         },
                  "57":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "F K",
+                            "result":  "Goal"
                         },
                  "58":  {
                             "type":  "G K",
@@ -129,12 +129,12 @@
                             "result":  "Goal"
                         },
                  "60":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "F K",
+                            "result":  "Goal"
                         },
                  "63":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "F K",
+                            "result":  "Goal"
                         },
                  "64":  {
                             "type":  "K O",
@@ -177,8 +177,8 @@
                             "result":  "Miss"
                         },
                  "80":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "K O",
+                            "result":  "Foul"
                         },
                  "84":  {
                             "type":  "K O",
@@ -201,20 +201,20 @@
                             "result":  "Miss"
                         },
                  "91":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "G K",
+                            "result":  "Miss"
                         },
                  "92":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "F K",
+                            "result":  "Miss"
                         },
                  "95":  {
                             "type":  "F K",
                             "result":  "Miss"
                         },
                  "98":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "F K",
+                            "result":  "Miss"
                         },
                  "99":  {
                             "type":  "K O",
@@ -225,8 +225,8 @@
                              "result":  "Miss"
                          },
                  "104":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "COR",
+                             "result":  "Miss"
                          },
                  "105":  {
                              "type":  "COR",
@@ -269,24 +269,24 @@
                              "result":  "Miss"
                          },
                  "127":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "F K",
+                             "result":  "Miss"
                          },
                  "128":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "G K",
+                             "result":  "Foul"
                          },
                  "129":  {
                              "type":  "K O",
                              "result":  "Miss"
                          },
                  "130":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "F K",
+                             "result":  "Miss"
                          },
                  "133":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "F K",
+                             "result":  "Miss"
                          },
                  "134":  {
                              "type":  "K O",
@@ -301,8 +301,8 @@
                              "result":  "Miss"
                          },
                  "141":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "K O",
+                             "result":  "S D"
                          },
                  "142":  {
                              "type":  "K O",
@@ -321,8 +321,8 @@
                              "result":  "S D"
                          },
                  "150":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "K O",
+                             "result":  "Save"
                          },
                  "156":  {
                              "type":  "G K",
@@ -373,8 +373,8 @@
                              "result":  "Miss"
                          },
                  "199":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "K O",
+                             "result":  "Foul"
                          },
                  "209":  {
                              "type":  "COR",
@@ -437,12 +437,12 @@
                              "result":  "Foul"
                          },
                  "230":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "G K",
+                             "result":  "Foul"
                          },
                  "231":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "K O",
+                             "result":  "Foul"
                          },
                  "1001":  {
                               "type":  "REF",
