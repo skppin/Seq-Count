@@ -104,6 +104,10 @@
                             "type":  "G K",
                             "result":  "Goal"
                         },
+                 "47":  {
+                            "type":  "N/A",
+                            "result":  "N/A"
+                        },
                  "53":  {
                             "type":  "COR",
                             "result":  "Goal"
@@ -307,6 +311,10 @@
                  "142":  {
                              "type":  "K O",
                              "result":  "Foul"
+                         },
+                 "143":  {
+                             "type":  "N/A",
+                             "result":  "N/A"
                          },
                  "147":  {
                              "type":  "K O",
