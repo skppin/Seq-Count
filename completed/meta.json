@@ -104,10 +104,6 @@
                             "type":  "G K",
                             "result":  "Goal"
                         },
-                 "47":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
-                        },
                  "53":  {
                             "type":  "COR",
                             "result":  "Goal"
@@ -147,6 +143,10 @@
                  "66":  {
                             "type":  "COR",
                             "result":  "Goal"
+                        },
+                 "67":  {
+                            "type":  "N/A",
+                            "result":  "N/A"
                         },
                  "68":  {
                             "type":  "COR",
@@ -215,6 +215,10 @@
                  "95":  {
                             "type":  "F K",
                             "result":  "Miss"
+                        },
+                 "97":  {
+                            "type":  "N/A",
+                            "result":  "N/A"
                         },
                  "98":  {
                             "type":  "F K",
@@ -348,6 +352,10 @@
                              "type":  "G K",
                              "result":  "S D"
                          },
+                 "164":  {
+                             "type":  "N/A",
+                             "result":  "N/A"
+                         },
                  "169":  {
                              "type":  "K O",
                              "result":  "S D"
@@ -383,6 +391,10 @@
                  "199":  {
                              "type":  "K O",
                              "result":  "Foul"
+                         },
+                 "204":  {
+                             "type":  "N/A",
+                             "result":  "N/A"
                          },
                  "209":  {
                              "type":  "COR",
@@ -489,6 +501,10 @@
                               "result":  "N/A"
                           },
                  "2007":  {
+                              "type":  "N/A",
+                              "result":  "N/A"
+                          },
+                 "2008":  {
                               "type":  "N/A",
                               "result":  "N/A"
                           }
