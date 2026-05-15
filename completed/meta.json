@@ -57,8 +57,8 @@
                             "result":  "Goal"
                         },
                  "23":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "G K",
+                            "result":  "Goal"
                         },
                  "25":  {
                             "type":  "F K",
@@ -149,8 +149,8 @@
                             "result":  "Goal"
                         },
                  "67":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "G K",
+                            "result":  "Goal"
                         },
                  "68":  {
                             "type":  "COR",
@@ -221,8 +221,8 @@
                             "result":  "Miss"
                         },
                  "97":  {
-                            "type":  "N/A",
-                            "result":  "N/A"
+                            "type":  "G K",
+                            "result":  "Foul"
                         },
                  "98":  {
                             "type":  "F K",
@@ -269,8 +269,8 @@
                              "result":  "Miss"
                          },
                  "117":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "K O",
+                             "result":  "Miss"
                          },
                  "123":  {
                              "type":  "COR",
@@ -325,8 +325,8 @@
                              "result":  "Foul"
                          },
                  "143":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "K O",
+                             "result":  "Miss"
                          },
                  "147":  {
                              "type":  "K O",
@@ -361,8 +361,8 @@
                              "result":  "S D"
                          },
                  "164":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "K O",
+                             "result":  "SD"
                          },
                  "169":  {
                              "type":  "K O",
@@ -401,8 +401,8 @@
                              "result":  "Foul"
                          },
                  "204":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "K O",
+                             "result":  "S D"
                          },
                  "209":  {
                              "type":  "COR",
