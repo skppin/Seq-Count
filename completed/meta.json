@@ -56,6 +56,10 @@
                             "type":  "F K",
                             "result":  "Goal"
                         },
+                 "23":  {
+                            "type":  "N/A",
+                            "result":  "N/A"
+                        },
                  "25":  {
                             "type":  "F K",
                             "result":  "Goal"
@@ -263,6 +267,10 @@
                  "115":  {
                              "type":  "G K",
                              "result":  "Miss"
+                         },
+                 "117":  {
+                             "type":  "N/A",
+                             "result":  "N/A"
                          },
                  "123":  {
                              "type":  "COR",
