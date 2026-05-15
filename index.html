@@ -48,9 +48,7 @@
       font-weight: 700;
     }
 
-    button.action:hover {
-      background: #f5f5f5;
-    }
+    button.action:hover { background: #f5f5f5; }
 
     .status {
       font-size: 13px;
@@ -76,6 +74,12 @@
       background: white;
       font-size: 13px;
       font-weight: 600;
+      cursor: pointer;
+    }
+
+    .result-pill.active {
+      border-color: #222;
+      background: #eaf7ff;
     }
 
     .boards, .boards-below {
@@ -143,6 +147,12 @@
       background: var(--green);
       border-color: #25b864;
       color: #0b3a1e;
+    }
+
+    .cell.highlighted {
+      outline: 3px solid #ff9800;
+      outline-offset: 2px;
+      box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.18);
     }
 
     .cell-type {
@@ -215,11 +225,12 @@
   </header>
 
   <section class="result-summary" aria-live="polite">
-    <div class="result-pill">Goal: <b id="countGoal">0</b></div>
-    <div class="result-pill">Miss: <b id="countMiss">0</b></div>
-    <div class="result-pill">Save: <b id="countSave">0</b></div>
-    <div class="result-pill">Save Deflect: <b id="countSaveDeflect">0</b></div>
-    <div class="result-pill">Foul: <b id="countFoul">0</b></div>
+    <button class="result-pill result-filter" data-result="Goal" type="button">Goal: <b id="countGoal">0</b></button>
+    <button class="result-pill result-filter" data-result="Miss" type="button">Miss: <b id="countMiss">0</b></button>
+    <button class="result-pill result-filter" data-result="Save" type="button">Save: <b id="countSave">0</b></button>
+    <button class="result-pill result-filter" data-result="Save Deflect" type="button">Save Deflect: <b id="countSaveDeflect">0</b></button>
+    <button class="result-pill result-filter" data-result="Foul" type="button">Foul: <b id="countFoul">0</b></button>
+    <button class="result-pill" id="clearHighlightBtn" type="button">Clear Highlight</button>
   </section>
 
   <div class="boards">
@@ -228,7 +239,7 @@
         Main Sequence
         <span class="mini-stats">Completed: <b id="mainDone">0</b> | Remaining: <b id="mainRem">240</b></span>
       </h2>
-      <div id="mainGrid" class="grid" role="grid" aria-label="Main Sequence grid"></div>
+      <div id="mainGrid" class="grid"></div>
     </section>
 
     <section class="board">
@@ -236,7 +247,7 @@
         Penalty &amp; Referee Sequence
         <span class="mini-stats">Completed: <b id="prDone">0</b> | Remaining: <b id="prRem">50</b></span>
       </h2>
-      <div id="prGrid" class="grid" role="grid" aria-label="Penalty and Referee Sequence grid"></div>
+      <div id="prGrid" class="grid"></div>
     </section>
   </div>
 
@@ -246,7 +257,7 @@
         Mirror Sequences
         <span class="mini-stats">Completed: <b id="mirrorDone">0</b> | Remaining: <b id="mirrorRem">240</b></span>
       </h2>
-      <div id="mirrorGrid" class="grid" role="grid" aria-label="Mirror Sequences grid"></div>
+      <div id="mirrorGrid" class="grid"></div>
     </section>
 
     <section class="board">
@@ -254,7 +265,7 @@
         Flip Sequences
         <span class="mini-stats">Completed: <b id="flipDone">0</b> | Remaining: <b id="flipRem">240</b></span>
       </h2>
-      <div id="flipGrid" class="grid" role="grid" aria-label="Flip Sequences grid"></div>
+      <div id="flipGrid" class="grid"></div>
     </section>
   </div>
 
@@ -266,14 +277,16 @@
     const DEFAULT_TYPE = "N/A";
     const DEFAULT_RESULT = "N/A";
 
-    const MAIN   = { key: "main",   cols: 16, total: 240, start: 1, title: "Main Sequence" };
-    const PR     = { key: "pr",     cols: 10, total: 50, title: "Penalty & Referee Sequence" };
+    const MAIN   = { key: "main", cols: 16, total: 240, start: 1, title: "Main Sequence" };
+    const PR     = { key: "pr", cols: 10, total: 50, title: "Penalty & Referee Sequence" };
     const MIRROR = { key: "mirror", cols: 16, total: 240, start: 1, title: "Mirror Sequences" };
-    const FLIP   = { key: "flip",   cols: 16, total: 240, start: 1, title: "Flip Sequences" };
+    const FLIP   = { key: "flip", cols: 16, total: 240, start: 1, title: "Flip Sequences" };
     const ALL = [MAIN, PR, MIRROR, FLIP];
 
     const GRAND_TOTAL = 240 + 50 + 240 + 240;
     const META_URL = "./completed/meta.json";
+
+    let activeHighlightResult = null;
 
     const completedCountEl = document.getElementById("completedCount");
     const remainingCountEl = document.getElementById("remainingCount");
@@ -295,10 +308,10 @@
     totalCountEl.textContent = String(GRAND_TOTAL);
 
     const mini = {
-      main:   { done: document.getElementById("mainDone"),   rem: document.getElementById("mainRem") },
-      pr:     { done: document.getElementById("prDone"),     rem: document.getElementById("prRem") },
+      main: { done: document.getElementById("mainDone"), rem: document.getElementById("mainRem") },
+      pr: { done: document.getElementById("prDone"), rem: document.getElementById("prRem") },
       mirror: { done: document.getElementById("mirrorDone"), rem: document.getElementById("mirrorRem") },
-      flip:   { done: document.getElementById("flipDone"),   rem: document.getElementById("flipRem") }
+      flip: { done: document.getElementById("flipDone"), rem: document.getElementById("flipRem") }
     };
 
     const gridEls = {
@@ -308,122 +321,15 @@
       flip: document.getElementById("flipGrid")
     };
 
-    let sets = {
-      main: new Set(),
-      pr: new Set(),
-      mirror: new Set(),
-      flip: new Set()
-    };
-
-    let types = {
-      main: new Map(),
-      pr: new Map(),
-      mirror: new Map(),
-      flip: new Map()
-    };
-
-    let results = {
-      main: new Map(),
-      pr: new Map(),
-      mirror: new Map(),
-      flip: new Map()
-    };
-
-    function buildGridSkeleton(gridEl, cfg) {
-      gridEl.style.gridTemplateColumns = `repeat(${cfg.cols}, var(--cell-size))`;
-      gridEl.innerHTML = "";
-      const frag = document.createDocumentFragment();
-
-      if (cfg.key === "pr") {
-        const prValues = [];
-        for (let i = 1001; i <= 1020; i++) prValues.push(i);
-        for (let i = 2001; i <= 2030; i++) prValues.push(i);
-
-        for (const value of prValues) {
-          const cell = document.createElement("div");
-          cell.className = "cell";
-          cell.setAttribute("role", "gridcell");
-          cell.dataset.value = String(value);
-
-          const typeEl = document.createElement("div");
-          typeEl.className = "cell-type";
-          typeEl.textContent = DEFAULT_TYPE;
-
-          const numberEl = document.createElement("div");
-          numberEl.className = "cell-number";
-          numberEl.textContent = value;
-
-          const resultEl = document.createElement("div");
-          resultEl.className = "cell-result";
-          resultEl.textContent = DEFAULT_RESULT;
-
-          cell.appendChild(typeEl);
-          cell.appendChild(numberEl);
-          cell.appendChild(resultEl);
-          frag.appendChild(cell);
-        }
-      } else {
-        for (let i = 0; i < cfg.total; i++) {
-          const value = cfg.start + i;
-
-          const cell = document.createElement("div");
-          cell.className = "cell";
-          cell.setAttribute("role", "gridcell");
-          cell.dataset.value = String(value);
-
-          const typeEl = document.createElement("div");
-          typeEl.className = "cell-type";
-          typeEl.textContent = DEFAULT_TYPE;
-
-          const numberEl = document.createElement("div");
-          numberEl.className = "cell-number";
-          numberEl.textContent = value;
-
-          const resultEl = document.createElement("div");
-          resultEl.className = "cell-result";
-          resultEl.textContent = DEFAULT_RESULT;
-
-          cell.appendChild(typeEl);
-          cell.appendChild(numberEl);
-          cell.appendChild(resultEl);
-          frag.appendChild(cell);
-        }
-      }
-
-      gridEl.appendChild(frag);
-    }
+    let sets = { main: new Set(), pr: new Set(), mirror: new Set(), flip: new Set() };
+    let types = { main: new Map(), pr: new Map(), mirror: new Map(), flip: new Map() };
+    let results = { main: new Map(), pr: new Map(), mirror: new Map(), flip: new Map() };
 
     function getPrValues() {
       const vals = [];
       for (let i = 1001; i <= 1020; i++) vals.push(i);
       for (let i = 2001; i <= 2030; i++) vals.push(i);
       return vals;
-    }
-
-    function applyStateToGrid(gridEl, set, typeMap, resultMap, cfg) {
-      if (cfg.key === "pr") {
-        const vals = getPrValues();
-        for (let i = 0; i < vals.length; i++) {
-          const value = vals[i];
-          const cell = gridEl.children[i];
-          const done = set.has(value);
-
-          cell.classList.toggle("green", done);
-          cell.querySelector(".cell-type").textContent = typeMap.get(value) || DEFAULT_TYPE;
-          cell.querySelector(".cell-result").textContent = resultMap.get(value) || DEFAULT_RESULT;
-        }
-        return;
-      }
-
-      for (let i = 0; i < cfg.total; i++) {
-        const value = cfg.start + i;
-        const cell = gridEl.children[i];
-        const done = set.has(value);
-
-        cell.classList.toggle("green", done);
-        cell.querySelector(".cell-type").textContent = typeMap.get(value) || DEFAULT_TYPE;
-        cell.querySelector(".cell-result").textContent = resultMap.get(value) || DEFAULT_RESULT;
-      }
     }
 
     function normalizeResultLabel(value) {
@@ -436,14 +342,105 @@
       return value || DEFAULT_RESULT;
     }
 
+    function createCell(value) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.dataset.value = String(value);
+      cell.title = `Sequence: ${value}\nType: ${DEFAULT_TYPE}\nResult: ${DEFAULT_RESULT}`;
+
+      const typeEl = document.createElement("div");
+      typeEl.className = "cell-type";
+      typeEl.textContent = DEFAULT_TYPE;
+
+      const numberEl = document.createElement("div");
+      numberEl.className = "cell-number";
+      numberEl.textContent = value;
+
+      const resultEl = document.createElement("div");
+      resultEl.className = "cell-result";
+      resultEl.textContent = DEFAULT_RESULT;
+
+      cell.appendChild(typeEl);
+      cell.appendChild(numberEl);
+      cell.appendChild(resultEl);
+
+      return cell;
+    }
+
+    function buildGridSkeleton(gridEl, cfg) {
+      gridEl.style.gridTemplateColumns = `repeat(${cfg.cols}, var(--cell-size))`;
+      gridEl.innerHTML = "";
+
+      const frag = document.createDocumentFragment();
+
+      const values = cfg.key === "pr"
+        ? getPrValues()
+        : Array.from({ length: cfg.total }, (_, i) => cfg.start + i);
+
+      values.forEach(value => frag.appendChild(createCell(value)));
+      gridEl.appendChild(frag);
+    }
+
+    function applyStateToGrid(gridEl, set, typeMap, resultMap, cfg) {
+      const values = cfg.key === "pr"
+        ? getPrValues()
+        : Array.from({ length: cfg.total }, (_, i) => cfg.start + i);
+
+      values.forEach((value, i) => {
+        const cell = gridEl.children[i];
+        const done = set.has(value);
+        const typeText = typeMap.get(value) || DEFAULT_TYPE;
+        const resultText = resultMap.get(value) || DEFAULT_RESULT;
+        const normalizedResult = normalizeResultLabel(resultText);
+
+        cell.classList.toggle("green", done);
+        cell.querySelector(".cell-type").textContent = typeText;
+        cell.querySelector(".cell-result").textContent = resultText;
+
+        cell.dataset.done = done ? "true" : "false";
+        cell.dataset.result = normalizedResult;
+        cell.title = `Sequence: ${value}\nType: ${typeText}\nResult: ${resultText}`;
+      });
+    }
+
+    function clearHighlights() {
+      activeHighlightResult = null;
+
+      document.querySelectorAll(".cell.highlighted").forEach(cell => {
+        cell.classList.remove("highlighted");
+      });
+
+      document.querySelectorAll(".result-filter.active").forEach(btn => {
+        btn.classList.remove("active");
+      });
+    }
+
+    function highlightByResult(resultName) {
+      clearHighlights();
+      activeHighlightResult = resultName;
+
+      document.querySelectorAll(`.result-filter[data-result="${resultName}"]`).forEach(btn => {
+        btn.classList.add("active");
+      });
+
+      document.querySelectorAll(".cell").forEach(cell => {
+        if (cell.dataset.done === "true" && cell.dataset.result === resultName) {
+          cell.classList.add("highlighted");
+        }
+      });
+    }
+
+    document.querySelectorAll(".result-filter").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const resultName = btn.dataset.result;
+        activeHighlightResult === resultName ? clearHighlights() : highlightByResult(resultName);
+      });
+    });
+
+    document.getElementById("clearHighlightBtn").addEventListener("click", clearHighlights);
+
     function updateResultCounts() {
-      const counts = {
-        Goal: 0,
-        Miss: 0,
-        Save: 0,
-        "Save Deflect": 0,
-        Foul: 0
-      };
+      const counts = { Goal: 0, Miss: 0, Save: 0, "Save Deflect": 0, Foul: 0 };
 
       for (const cfg of ALL) {
         for (const n of sets[cfg.key]) {
@@ -452,9 +449,9 @@
         }
       }
 
-      for (const key of Object.keys(counts)) {
+      Object.keys(counts).forEach(key => {
         resultCountEls[key].textContent = String(counts[key]);
-      }
+      });
     }
 
     function updateAllCounts() {
@@ -467,6 +464,7 @@
       const completed = sets.main.size + sets.pr.size + sets.mirror.size + sets.flip.size;
       completedCountEl.textContent = String(completed);
       remainingCountEl.textContent = String(GRAND_TOTAL - completed);
+
       updateResultCounts();
     }
 
@@ -474,7 +472,14 @@
       for (const cfg of ALL) {
         applyStateToGrid(gridEls[cfg.key], sets[cfg.key], types[cfg.key], results[cfg.key], cfg);
       }
+
       updateAllCounts();
+
+      if (activeHighlightResult) {
+        const keep = activeHighlightResult;
+        activeHighlightResult = null;
+        highlightByResult(keep);
+      }
     }
 
     function getSorted(set) {
@@ -504,31 +509,31 @@
         ...getSorted(sets.mirror).map(n => `${n} - ${types.mirror.get(n) || DEFAULT_TYPE} - ${results.mirror.get(n) || DEFAULT_RESULT}`),
         "",
         FLIP.title,
-        ...getSorted(sets.flip).map(n => `${n} - ${types.flip.get(n) || DEFAULT_TYPE} - ${results.flip.get(n) || DEFAULT_RESULT}`),
-        ""
+        ...getSorted(sets.flip).map(n => `${n} - ${types.flip.get(n) || DEFAULT_TYPE} - ${results.flip.get(n) || DEFAULT_RESULT}`)
       ].join("\n");
 
       downloadBlob(new Blob([lines], { type: "text/plain;charset=utf-8" }), "sequences.txt");
     }
 
     function exportCsv() {
+      const esc = v => String(v || "").replace(/"/g, '""');
+
       const lines = [
         MAIN.title,
         "BlockNumber,BlockType,BlockResult",
-        ...getSorted(sets.main).map(n => `${n},"${(types.main.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}","${(results.main.get(n) || DEFAULT_RESULT).replace(/"/g, '""')}"`),
+        ...getSorted(sets.main).map(n => `${n},"${esc(types.main.get(n) || DEFAULT_TYPE)}","${esc(results.main.get(n) || DEFAULT_RESULT)}"`),
         "",
         PR.title,
         "BlockNumber,BlockType,BlockResult",
-        ...getSorted(sets.pr).map(n => `${n},"${(types.pr.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}","${(results.pr.get(n) || DEFAULT_RESULT).replace(/"/g, '""')}"`),
+        ...getSorted(sets.pr).map(n => `${n},"${esc(types.pr.get(n) || DEFAULT_TYPE)}","${esc(results.pr.get(n) || DEFAULT_RESULT)}"`),
         "",
         MIRROR.title,
         "BlockNumber,BlockType,BlockResult",
-        ...getSorted(sets.mirror).map(n => `${n},"${(types.mirror.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}","${(results.mirror.get(n) || DEFAULT_RESULT).replace(/"/g, '""')}"`),
+        ...getSorted(sets.mirror).map(n => `${n},"${esc(types.mirror.get(n) || DEFAULT_TYPE)}","${esc(results.mirror.get(n) || DEFAULT_RESULT)}"`),
         "",
         FLIP.title,
         "BlockNumber,BlockType,BlockResult",
-        ...getSorted(sets.flip).map(n => `${n},"${(types.flip.get(n) || DEFAULT_TYPE).replace(/"/g, '""')}","${(results.flip.get(n) || DEFAULT_RESULT).replace(/"/g, '""')}"`),
-        ""
+        ...getSorted(sets.flip).map(n => `${n},"${esc(types.flip.get(n) || DEFAULT_TYPE)}","${esc(results.flip.get(n) || DEFAULT_RESULT)}"`)
       ].join("\r\n") + "\r\n";
 
       downloadBlob(new Blob([lines], { type: "text/csv;charset=utf-8" }), "sequences.csv");
@@ -538,26 +543,9 @@
     exportCsvBtn.addEventListener("click", exportCsv);
 
     function resetState() {
-      sets = {
-        main: new Set(),
-        pr: new Set(),
-        mirror: new Set(),
-        flip: new Set()
-      };
-
-      types = {
-        main: new Map(),
-        pr: new Map(),
-        mirror: new Map(),
-        flip: new Map()
-      };
-
-      results = {
-        main: new Map(),
-        pr: new Map(),
-        mirror: new Map(),
-        flip: new Map()
-      };
+      sets = { main: new Set(), pr: new Set(), mirror: new Set(), flip: new Set() };
+      types = { main: new Map(), pr: new Map(), mirror: new Map(), flip: new Map() };
+      results = { main: new Map(), pr: new Map(), mirror: new Map(), flip: new Map() };
     }
 
     function parseMetaObject(obj) {
@@ -567,8 +555,7 @@
     function applyMainMeta(obj) {
       for (const [rawKey, rawValue] of Object.entries(obj)) {
         const n = parseInt(rawKey, 10);
-        if (!Number.isInteger(n)) continue;
-        if (n < 1 || n > 240) continue;
+        if (!Number.isInteger(n) || n < 1 || n > 240) continue;
         if (!rawValue || typeof rawValue !== "object" || Array.isArray(rawValue)) continue;
 
         sets.main.add(n);
@@ -593,8 +580,7 @@
     function applyGenericMeta(key, obj) {
       for (const [rawKey, rawValue] of Object.entries(obj)) {
         const n = parseInt(rawKey, 10);
-        if (!Number.isInteger(n)) continue;
-        if (n < 1 || n > 240) continue;
+        if (!Number.isInteger(n) || n < 1 || n > 240) continue;
         if (!rawValue || typeof rawValue !== "object" || Array.isArray(rawValue)) continue;
 
         sets[key].add(n);
@@ -605,25 +591,16 @@
 
     function fillMissingMaps() {
       for (let n = 1; n <= 240; n++) {
-        if (!types.main.has(n)) types.main.set(n, DEFAULT_TYPE);
-        if (!results.main.has(n)) results.main.set(n, DEFAULT_RESULT);
-
-        if (!types.mirror.has(n)) types.mirror.set(n, DEFAULT_TYPE);
-        if (!results.mirror.has(n)) results.mirror.set(n, DEFAULT_RESULT);
-
-        if (!types.flip.has(n)) types.flip.set(n, DEFAULT_TYPE);
-        if (!results.flip.has(n)) results.flip.set(n, DEFAULT_RESULT);
+        ["main", "mirror", "flip"].forEach(key => {
+          if (!types[key].has(n)) types[key].set(n, DEFAULT_TYPE);
+          if (!results[key].has(n)) results[key].set(n, DEFAULT_RESULT);
+        });
       }
 
-      for (let n = 1001; n <= 1020; n++) {
+      getPrValues().forEach(n => {
         if (!types.pr.has(n)) types.pr.set(n, DEFAULT_TYPE);
         if (!results.pr.has(n)) results.pr.set(n, DEFAULT_RESULT);
-      }
-
-      for (let n = 2001; n <= 2030; n++) {
-        if (!types.pr.has(n)) types.pr.set(n, DEFAULT_TYPE);
-        if (!results.pr.has(n)) results.pr.set(n, DEFAULT_RESULT);
-      }
+      });
     }
 
     async function loadFromJson() {
