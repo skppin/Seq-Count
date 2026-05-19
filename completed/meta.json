@@ -108,6 +108,10 @@
                             "type":  "G K",
                             "result":  "Goal"
                         },
+                 "47":  {
+                            "type":  "K O",
+                            "result":  "Goal"
+                        },
                  "53":  {
                             "type":  "COR",
                             "result":  "Goal"
@@ -172,6 +176,10 @@
                             "type":  "K O",
                             "result":  "Miss"
                         },
+                 "73":  {
+                            "type":  "K O",
+                            "result":  "Foul"
+                        },
                  "77":  {
                             "type":  "K O",
                             "result":  "Miss"
@@ -214,6 +222,10 @@
                         },
                  "92":  {
                             "type":  "F K",
+                            "result":  "Miss"
+                        },
+                 "94":  {
+                            "type":  "K O",
                             "result":  "Miss"
                         },
                  "95":  {
