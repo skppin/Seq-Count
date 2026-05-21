@@ -453,22 +453,26 @@
 
     function applyHighlights() {
       document.querySelectorAll(".cell.highlighted").forEach(cell => {
-        cell.classList.remove("highlighted");
-      });
+    cell.classList.remove("highlighted");
+  });
 
-      document.querySelectorAll(".cell").forEach(cell => {
-        const isDone = cell.dataset.done === "true";
+  if (!activeHighlightResult && !activeHighlightType) {
+    return;
+  }
 
-        const resultMatch =
-          !activeHighlightResult || cell.dataset.result === activeHighlightResult;
+  document.querySelectorAll(".cell").forEach(cell => {
+    const isDone = cell.dataset.done === "true";
 
-        const typeMatch =
-          !activeHighlightType || cell.dataset.type === activeHighlightType;
+    const resultMatch =
+      !activeHighlightResult || cell.dataset.result === activeHighlightResult;
 
-        if (isDone && resultMatch && typeMatch) {
-          cell.classList.add("highlighted");
-        }
-      });
+    const typeMatch =
+      !activeHighlightType || cell.dataset.type === activeHighlightType;
+
+    if (isDone && resultMatch && typeMatch) {
+      cell.classList.add("highlighted");
+    }
+  });
     }
 
     function resetFilterButtonsVisual() {
@@ -557,6 +561,10 @@
     function render() {
      for (const cfg of ALL) {
     applyStateToGrid(gridEls[cfg.key], sets[cfg.key], types[cfg.key], results[cfg.key], cfg);
+  }
+
+  updateAllCounts();
+  applyHighlights();
   }
 
   updateAllCounts();
@@ -759,15 +767,9 @@
     buildGridSkeleton(gridEls.mirror, MIRROR);
     buildGridSkeleton(gridEls.flip, FLIP);
 
-    activeHighlightResult = null;
+   activeHighlightResult = null;
 activeHighlightType = null;
 clearHighlights();
-
-window.addEventListener("pageshow", () => {
-  activeHighlightResult = null;
-  activeHighlightType = null;
-  clearHighlights();
-});
     loadFromJson();
   </script>
 </body>
