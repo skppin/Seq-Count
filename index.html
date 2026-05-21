@@ -93,16 +93,24 @@
 }
 
 .result-pill.selected-filter {
-  border-color: #222 !important;
-  background: #ff9800 !important;
-  color: #111;
-  box-shadow: none;
+  border: 2px solid #ff9800 !important;
+  background: #fff3e0 !important;
+  color: #111 !important;
 }
 
     .result-pill:focus,
     .result-pill:focus-visible,
     .result-pill:active {
-      outline: none;
+      padding: 6px 10px;
+  border: 1px solid #ddd !important;
+  border-radius: 999px;
+  background: #fff !important;
+  color: #333 !important;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none !important;
+  box-shadow: none !important;
     }
 
     .boards, .boards-below {
@@ -547,12 +555,24 @@
     }
 
     function render() {
-      for (const cfg of ALL) {
-        applyStateToGrid(gridEls[cfg.key], sets[cfg.key], types[cfg.key], results[cfg.key], cfg);
-      }
+     for (const cfg of ALL) {
+    applyStateToGrid(gridEls[cfg.key], sets[cfg.key], types[cfg.key], results[cfg.key], cfg);
+  }
 
-      updateAllCounts();
-      applyHighlights();
+  updateAllCounts();
+
+  if (activeHighlightResult || activeHighlightType) {
+    applyHighlights();
+  } else {
+    document.querySelectorAll(".cell.highlighted").forEach(cell => {
+      cell.classList.remove("highlighted");
+    });
+
+    document.querySelectorAll(".result-filter, .type-filter").forEach(btn => {
+      btn.classList.remove("selected-filter");
+      btn.blur();
+    });
+  }
     }
 
     function resetState() {
@@ -739,7 +759,15 @@
     buildGridSkeleton(gridEls.mirror, MIRROR);
     buildGridSkeleton(gridEls.flip, FLIP);
 
-    resetFilterButtonsVisual();
+    activeHighlightResult = null;
+activeHighlightType = null;
+clearHighlights();
+
+window.addEventListener("pageshow", () => {
+  activeHighlightResult = null;
+  activeHighlightType = null;
+  clearHighlights();
+});
     loadFromJson();
   </script>
 </body>
