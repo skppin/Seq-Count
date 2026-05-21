@@ -83,11 +83,17 @@
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
+      outline: none;
     }
 
     .result-pill.active {
       border-color: #222;
       background: #eaf7ff;
+    }
+
+    .result-pill:focus {
+      outline: none;
+      box-shadow: none;
     }
 
     .boards, .boards-below {
