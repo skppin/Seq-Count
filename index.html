@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Seq Completion Tracker</title>
+
   <style>
     :root {
       --gap: 6px;
@@ -56,7 +57,7 @@
       padding-left: 4px;
     }
 
-    .result-summary {
+    .filter-section {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
@@ -65,6 +66,13 @@
       border: 1px solid #eee;
       border-radius: 10px;
       background: #fafafa;
+      align-items: center;
+    }
+
+    .filter-title {
+      font-size: 13px;
+      font-weight: 800;
+      margin-right: 4px;
     }
 
     .result-pill {
@@ -155,7 +163,8 @@
       box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.18);
     }
 
-    .cell-type {
+    .cell-type,
+    .cell-result {
       font-size: 10px;
       line-height: 1;
       width: 100%;
@@ -173,20 +182,6 @@
       font-weight: 700;
       font-size: 14px;
       line-height: 1;
-    }
-
-    .cell-result {
-      font-size: 10px;
-      line-height: 1;
-      width: 100%;
-      text-align: center;
-      white-space: normal;
-      word-break: break-word;
-      overflow-wrap: anywhere;
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 1;
-      line-clamp: 1;
     }
 
     footer {
@@ -224,12 +219,24 @@
     <span class="status" id="lastSync"></span>
   </header>
 
-  <section class="result-summary" aria-live="polite">
+  <section class="filter-section" aria-live="polite">
+    <span class="filter-title">Result:</span>
     <button class="result-pill result-filter" data-result="Goal" type="button">Goal: <b id="countGoal">0</b></button>
     <button class="result-pill result-filter" data-result="Miss" type="button">Miss: <b id="countMiss">0</b></button>
     <button class="result-pill result-filter" data-result="Save" type="button">Save: <b id="countSave">0</b></button>
     <button class="result-pill result-filter" data-result="Save Deflect" type="button">Save Deflect: <b id="countSaveDeflect">0</b></button>
     <button class="result-pill result-filter" data-result="Foul" type="button">Foul: <b id="countFoul">0</b></button>
+  </section>
+
+  <section class="filter-section" aria-live="polite">
+    <span class="filter-title">Type:</span>
+    <button class="result-pill type-filter" data-type="K O" type="button">K O</button>
+    <button class="result-pill type-filter" data-type="G K" type="button">G K</button>
+    <button class="result-pill type-filter" data-type="F K" type="button">F K</button>
+    <button class="result-pill type-filter" data-type="COR" type="button">COR</button>
+    <button class="result-pill type-filter" data-type="REF" type="button">REF</button>
+    <button class="result-pill type-filter" data-type="P T" type="button">P T</button>
+    <button class="result-pill type-filter" data-type="N/A" type="button">N/A</button>
     <button class="result-pill" id="clearHighlightBtn" type="button">Clear Highlight</button>
   </section>
 
@@ -287,6 +294,7 @@
     const META_URL = "./completed/meta.json";
 
     let activeHighlightResult = null;
+    let activeHighlightType = null;
 
     const completedCountEl = document.getElementById("completedCount");
     const remainingCountEl = document.getElementById("remainingCount");
@@ -399,32 +407,40 @@
 
         cell.dataset.done = done ? "true" : "false";
         cell.dataset.result = normalizedResult;
+        cell.dataset.type = typeText;
+
         cell.title = `Sequence: ${value}\nType: ${typeText}\nResult: ${resultText}`;
       });
     }
 
     function clearHighlights() {
       activeHighlightResult = null;
+      activeHighlightType = null;
 
       document.querySelectorAll(".cell.highlighted").forEach(cell => {
         cell.classList.remove("highlighted");
       });
 
-      document.querySelectorAll(".result-filter.active").forEach(btn => {
+      document.querySelectorAll(".result-filter.active, .type-filter.active").forEach(btn => {
         btn.classList.remove("active");
       });
     }
 
-    function highlightByResult(resultName) {
-      clearHighlights();
-      activeHighlightResult = resultName;
-
-      document.querySelectorAll(`.result-filter[data-result="${resultName}"]`).forEach(btn => {
-        btn.classList.add("active");
+    function applyHighlights() {
+      document.querySelectorAll(".cell.highlighted").forEach(cell => {
+        cell.classList.remove("highlighted");
       });
 
       document.querySelectorAll(".cell").forEach(cell => {
-        if (cell.dataset.done === "true" && cell.dataset.result === resultName) {
+        const isDone = cell.dataset.done === "true";
+
+        const resultMatch =
+          !activeHighlightResult || cell.dataset.result === activeHighlightResult;
+
+        const typeMatch =
+          !activeHighlightType || cell.dataset.type === activeHighlightType;
+
+        if (isDone && resultMatch && typeMatch) {
           cell.classList.add("highlighted");
         }
       });
@@ -433,7 +449,34 @@
     document.querySelectorAll(".result-filter").forEach(btn => {
       btn.addEventListener("click", () => {
         const resultName = btn.dataset.result;
-        activeHighlightResult === resultName ? clearHighlights() : highlightByResult(resultName);
+
+        document.querySelectorAll(".result-filter.active").forEach(b => b.classList.remove("active"));
+
+        if (activeHighlightResult === resultName) {
+          activeHighlightResult = null;
+        } else {
+          activeHighlightResult = resultName;
+          btn.classList.add("active");
+        }
+
+        applyHighlights();
+      });
+    });
+
+    document.querySelectorAll(".type-filter").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const typeName = btn.dataset.type;
+
+        document.querySelectorAll(".type-filter.active").forEach(b => b.classList.remove("active"));
+
+        if (activeHighlightType === typeName) {
+          activeHighlightType = null;
+        } else {
+          activeHighlightType = typeName;
+          btn.classList.add("active");
+        }
+
+        applyHighlights();
       });
     });
 
@@ -474,73 +517,8 @@
       }
 
       updateAllCounts();
-
-      if (activeHighlightResult) {
-        const keep = activeHighlightResult;
-        activeHighlightResult = null;
-        highlightByResult(keep);
-      }
+      applyHighlights();
     }
-
-    function getSorted(set) {
-      return Array.from(set).sort((a, b) => a - b);
-    }
-
-    function downloadBlob(blob, filename) {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    function exportTxt() {
-      const lines = [
-        MAIN.title,
-        ...getSorted(sets.main).map(n => `${n} - ${types.main.get(n) || DEFAULT_TYPE} - ${results.main.get(n) || DEFAULT_RESULT}`),
-        "",
-        PR.title,
-        ...getSorted(sets.pr).map(n => `${n} - ${types.pr.get(n) || DEFAULT_TYPE} - ${results.pr.get(n) || DEFAULT_RESULT}`),
-        "",
-        MIRROR.title,
-        ...getSorted(sets.mirror).map(n => `${n} - ${types.mirror.get(n) || DEFAULT_TYPE} - ${results.mirror.get(n) || DEFAULT_RESULT}`),
-        "",
-        FLIP.title,
-        ...getSorted(sets.flip).map(n => `${n} - ${types.flip.get(n) || DEFAULT_TYPE} - ${results.flip.get(n) || DEFAULT_RESULT}`)
-      ].join("\n");
-
-      downloadBlob(new Blob([lines], { type: "text/plain;charset=utf-8" }), "sequences.txt");
-    }
-
-    function exportCsv() {
-      const esc = v => String(v || "").replace(/"/g, '""');
-
-      const lines = [
-        MAIN.title,
-        "BlockNumber,BlockType,BlockResult",
-        ...getSorted(sets.main).map(n => `${n},"${esc(types.main.get(n) || DEFAULT_TYPE)}","${esc(results.main.get(n) || DEFAULT_RESULT)}"`),
-        "",
-        PR.title,
-        "BlockNumber,BlockType,BlockResult",
-        ...getSorted(sets.pr).map(n => `${n},"${esc(types.pr.get(n) || DEFAULT_TYPE)}","${esc(results.pr.get(n) || DEFAULT_RESULT)}"`),
-        "",
-        MIRROR.title,
-        "BlockNumber,BlockType,BlockResult",
-        ...getSorted(sets.mirror).map(n => `${n},"${esc(types.mirror.get(n) || DEFAULT_TYPE)}","${esc(results.mirror.get(n) || DEFAULT_RESULT)}"`),
-        "",
-        FLIP.title,
-        "BlockNumber,BlockType,BlockResult",
-        ...getSorted(sets.flip).map(n => `${n},"${esc(types.flip.get(n) || DEFAULT_TYPE)}","${esc(results.flip.get(n) || DEFAULT_RESULT)}"`)
-      ].join("\r\n") + "\r\n";
-
-      downloadBlob(new Blob([lines], { type: "text/csv;charset=utf-8" }), "sequences.csv");
-    }
-
-    exportTxtBtn.addEventListener("click", exportTxt);
-    exportCsvBtn.addEventListener("click", exportCsv);
 
     function resetState() {
       sets = { main: new Set(), pr: new Set(), mirror: new Set(), flip: new Set() };
@@ -639,6 +617,65 @@
       }
     }
 
+    function getSorted(set) {
+      return Array.from(set).sort((a, b) => a - b);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportTxt() {
+      const lines = [
+        MAIN.title,
+        ...getSorted(sets.main).map(n => `${n} - ${types.main.get(n) || DEFAULT_TYPE} - ${results.main.get(n) || DEFAULT_RESULT}`),
+        "",
+        PR.title,
+        ...getSorted(sets.pr).map(n => `${n} - ${types.pr.get(n) || DEFAULT_TYPE} - ${results.pr.get(n) || DEFAULT_RESULT}`),
+        "",
+        MIRROR.title,
+        ...getSorted(sets.mirror).map(n => `${n} - ${types.mirror.get(n) || DEFAULT_TYPE} - ${results.mirror.get(n) || DEFAULT_RESULT}`),
+        "",
+        FLIP.title,
+        ...getSorted(sets.flip).map(n => `${n} - ${types.flip.get(n) || DEFAULT_TYPE} - ${results.flip.get(n) || DEFAULT_RESULT}`)
+      ].join("\n");
+
+      downloadBlob(new Blob([lines], { type: "text/plain;charset=utf-8" }), "sequences.txt");
+    }
+
+    function exportCsv() {
+      const esc = v => String(v || "").replace(/"/g, '""');
+
+      const lines = [
+        MAIN.title,
+        "BlockNumber,BlockType,BlockResult",
+        ...getSorted(sets.main).map(n => `${n},"${esc(types.main.get(n) || DEFAULT_TYPE)}","${esc(results.main.get(n) || DEFAULT_RESULT)}"`),
+        "",
+        PR.title,
+        "BlockNumber,BlockType,BlockResult",
+        ...getSorted(sets.pr).map(n => `${n},"${esc(types.pr.get(n) || DEFAULT_TYPE)}","${esc(results.pr.get(n) || DEFAULT_RESULT)}"`),
+        "",
+        MIRROR.title,
+        "BlockNumber,BlockType,BlockResult",
+        ...getSorted(sets.mirror).map(n => `${n},"${esc(types.mirror.get(n) || DEFAULT_TYPE)}","${esc(results.mirror.get(n) || DEFAULT_RESULT)}"`),
+        "",
+        FLIP.title,
+        "BlockNumber,BlockType,BlockResult",
+        ...getSorted(sets.flip).map(n => `${n},"${esc(types.flip.get(n) || DEFAULT_TYPE)}","${esc(results.flip.get(n) || DEFAULT_RESULT)}"`)
+      ].join("\r\n") + "\r\n";
+
+      downloadBlob(new Blob([lines], { type: "text/csv;charset=utf-8" }), "sequences.csv");
+    }
+
+    exportTxtBtn.addEventListener("click", exportTxt);
+    exportCsvBtn.addEventListener("click", exportCsv);
     manualSyncBtn.addEventListener("click", loadFromJson);
 
     buildGridSkeleton(gridEls.main, MAIN);
