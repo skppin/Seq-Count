@@ -11,6 +11,7 @@
       --cell-size: 46px;
       --green: #2ecc71;
       --border: #d0d0d0;
+      --highlight: #ff9800;
     }
 
     body {
@@ -19,123 +20,79 @@
       color: #222;
     }
 
-    header {
+    header, .filter-section {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 10px 14px;
+      gap: 10px;
       margin-bottom: 14px;
+    }
+
+    .stats, .filter-section {
+      padding: 10px 12px;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      background: #fafafa;
     }
 
     .stats {
       display: flex;
       gap: 14px;
-      align-items: center;
-      padding: 10px 12px;
-      border: 1px solid #eee;
-      border-radius: 10px;
-      background: #fafafa;
     }
 
     .stat { font-size: 14px; }
     .stat b { font-size: 16px; }
 
-    button.action {
+    .action, .pill {
       cursor: pointer;
-      border: 1px solid #ccc;
-      background: white;
-      padding: 10px 12px;
-      border-radius: 10px;
+      border: 1px solid #ddd;
+      background: #fff;
+      padding: 8px 12px;
+      border-radius: 999px;
       font-weight: 700;
+      font-size: 13px;
     }
 
-    button.action:hover { background: #f5f5f5; }
+    .action {
+      border-radius: 10px;
+    }
+
+    .pill.selected {
+      background: #fff3e0;
+      border-color: var(--highlight);
+      box-shadow: 0 0 0 2px rgba(255,152,0,.25);
+    }
 
     .status {
       font-size: 13px;
       color: #555;
-      padding-left: 4px;
-    }
-
-    .filter-section {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 14px;
-      padding: 10px 12px;
-      border: 1px solid #eee;
-      border-radius: 10px;
-      background: #fafafa;
-      align-items: center;
     }
 
     .filter-title {
       font-size: 13px;
       font-weight: 800;
-      margin-right: 4px;
     }
 
-    .result-pill {
-      padding: 6px 10px;
-      border: 1px solid #ddd;
-      border-radius: 999px;
-      background: #fff !important;
-      color: #333;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      outline: none;
-      box-shadow: none;
-    }
-
-    .result-pill:hover {
-  background: #fff !important;
-}
-
-.result-pill.selected-filter {
-  border: 2px solid #ff9800 !important;
-  background: #fff3e0 !important;
-  color: #111 !important;
-}
-
-    .result-pill:focus,
-    .result-pill:focus-visible,
-    .result-pill:active {
-      padding: 6px 10px;
-  border: 1px solid #ddd !important;
-  border-radius: 999px;
-  background: #fff !important;
-  color: #333 !important;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  outline: none !important;
-  box-shadow: none !important;
-    }
-
-    .boards, .boards-below {
-      display: flex;
+    .boards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
       gap: 14px;
-      align-items: flex-start;
-      flex-wrap: wrap;
+      margin-bottom: 14px;
     }
-
-    .boards { margin-bottom: 14px; }
 
     .board {
-      flex: 1 1 520px;
       border: 1px solid #eee;
       border-radius: 14px;
       padding: 14px;
       background: #fff;
-      box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+      overflow-x: auto;
     }
 
     .board-title {
       margin: 0 0 10px 0;
       font-size: 16px;
       display: flex;
-      align-items: baseline;
+      align-items: center;
       gap: 10px;
       flex-wrap: wrap;
     }
@@ -150,12 +107,10 @@
       white-space: nowrap;
     }
 
-    .mini-stats b { font-size: 13px; }
-
     .grid {
       display: grid;
       gap: var(--gap);
-      user-select: none;
+      width: max-content;
     }
 
     .cell {
@@ -168,10 +123,10 @@
       border: 1px solid var(--border);
       border-radius: 10px;
       background: #fff;
-      box-shadow: 0 1px 0 rgba(0,0,0,0.03);
       padding: 4px 2px;
       text-align: center;
       overflow: hidden;
+      box-sizing: border-box;
     }
 
     .cell.green {
@@ -181,9 +136,8 @@
     }
 
     .cell.highlighted {
-      outline: 3px solid #ff9800;
+      outline: 3px solid var(--highlight);
       outline-offset: 2px;
-      box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.18);
     }
 
     .cell-type,
@@ -191,18 +145,13 @@
       font-size: 10px;
       line-height: 1;
       width: 100%;
-      text-align: center;
-      white-space: normal;
-      word-break: break-word;
-      overflow-wrap: anywhere;
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 1;
-      line-clamp: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
 
     .cell-number {
-      font-weight: 700;
+      font-weight: 800;
       font-size: 14px;
       line-height: 1;
     }
@@ -213,316 +162,258 @@
       color: #666;
     }
 
-    @media (max-width: 900px) {
-      :root { --cell-size: 38px; }
-    }
-
     @media (max-width: 650px) {
-      :root { --cell-size: 32px; --gap: 5px; }
-      .cell-number { font-size: 12px; }
-      .cell-type { font-size: 8px; }
-      .cell-result { font-size: 8px; }
+      :root { --cell-size: 34px; --gap: 5px; }
+      body { margin: 12px; }
+      .boards { grid-template-columns: 1fr; }
+      .cell-number { font-size: 11px; }
+      .cell-type, .cell-result { font-size: 7px; }
     }
   </style>
 </head>
 
 <body>
   <header>
-    <div class="stats" aria-live="polite">
+    <div class="stats">
       <div class="stat">Completed: <b id="completedCount">0</b></div>
       <div class="stat">Remaining: <b id="remainingCount">0</b></div>
       <div class="stat">Total: <b id="totalCount">0</b></div>
     </div>
 
-    <button class="action" id="exportTxtBtn" type="button">Export (.txt)</button>
-    <button class="action" id="exportCsvBtn" type="button">Export (.csv / Excel)</button>
-    <button class="action" id="manualSyncBtn" type="button">Sync Now</button>
+    <button class="action" id="exportTxtBtn">Export (.txt)</button>
+    <button class="action" id="exportCsvBtn">Export (.csv / Excel)</button>
+    <button class="action" id="manualSyncBtn">Sync Now</button>
 
     <span class="status" id="syncStatus">Loading…</span>
     <span class="status" id="lastSync"></span>
   </header>
 
-  <section class="filter-section" aria-live="polite">
+  <section class="filter-section">
     <span class="filter-title">Result:</span>
-    <button class="result-pill result-filter" data-result="Goal" type="button">Goal: <b id="countGoal">0</b></button>
-    <button class="result-pill result-filter" data-result="Miss" type="button">Miss: <b id="countMiss">0</b></button>
-    <button class="result-pill result-filter" data-result="Save" type="button">Save: <b id="countSave">0</b></button>
-    <button class="result-pill result-filter" data-result="Save Deflect" type="button">Save Deflect: <b id="countSaveDeflect">0</b></button>
-    <button class="result-pill result-filter" data-result="Foul" type="button">Foul: <b id="countFoul">0</b></button>
+    <button class="pill result-filter" data-result="Goal">Goal: <b id="countGoal">0</b></button>
+    <button class="pill result-filter" data-result="Miss">Miss: <b id="countMiss">0</b></button>
+    <button class="pill result-filter" data-result="Save">Save: <b id="countSave">0</b></button>
+    <button class="pill result-filter" data-result="Save Deflect">Save Deflect: <b id="countSaveDeflect">0</b></button>
+    <button class="pill result-filter" data-result="Foul">Foul: <b id="countFoul">0</b></button>
   </section>
 
-  <section class="filter-section" aria-live="polite">
+  <section class="filter-section">
     <span class="filter-title">Type:</span>
-    <button class="result-pill type-filter" data-type="K O" type="button">Kick Off</button>
-    <button class="result-pill type-filter" data-type="G K" type="button">Goal Kick</button>
-    <button class="result-pill type-filter" data-type="F K" type="button">Free Kick</button>
-    <button class="result-pill type-filter" data-type="COR" type="button">Corner</button>
-    <button class="result-pill type-filter" data-type="REF" type="button">Referee</button>
-    <button class="result-pill type-filter" data-type="P T" type="button">Penalty</button>
-    <button class="result-pill type-filter" data-type="N/A" type="button">N/A</button>
-    <button class="result-pill" id="clearHighlightBtn" type="button">Clear Highlight</button>
+    <button class="pill type-filter" data-type="K O">Kick Off</button>
+    <button class="pill type-filter" data-type="G K">Goal Kick</button>
+    <button class="pill type-filter" data-type="F K">Free Kick</button>
+    <button class="pill type-filter" data-type="COR">Corner</button>
+    <button class="pill type-filter" data-type="REF">Referee</button>
+    <button class="pill type-filter" data-type="P T">Penalty</button>
+    <button class="pill type-filter" data-type="N/A">N/A</button>
+    <button class="pill" id="clearHighlightBtn">Clear Highlight</button>
   </section>
 
   <div class="boards">
     <section class="board">
-      <h2 class="board-title">
-        Main Sequence
-        <span class="mini-stats">Completed: <b id="mainDone">0</b> | Remaining: <b id="mainRem">240</b></span>
-      </h2>
+      <h2 class="board-title">Main Sequence <span class="mini-stats">Completed: <b id="mainDone">0</b> | Remaining: <b id="mainRem">240</b></span></h2>
       <div id="mainGrid" class="grid"></div>
     </section>
 
     <section class="board">
-      <h2 class="board-title">
-        Penalty &amp; Referee Sequence
-        <span class="mini-stats">Completed: <b id="prDone">0</b> | Remaining: <b id="prRem">50</b></span>
-      </h2>
+      <h2 class="board-title">Penalty &amp; Referee Sequence <span class="mini-stats">Completed: <b id="prDone">0</b> | Remaining: <b id="prRem">50</b></span></h2>
       <div id="prGrid" class="grid"></div>
     </section>
-  </div>
 
-  <div class="boards-below">
     <section class="board">
-      <h2 class="board-title">
-        Mirror Sequences
-        <span class="mini-stats">Completed: <b id="mirrorDone">0</b> | Remaining: <b id="mirrorRem">240</b></span>
-      </h2>
+      <h2 class="board-title">Mirror Sequences <span class="mini-stats">Completed: <b id="mirrorDone">0</b> | Remaining: <b id="mirrorRem">240</b></span></h2>
       <div id="mirrorGrid" class="grid"></div>
     </section>
 
     <section class="board">
-      <h2 class="board-title">
-        Flip Sequences
-        <span class="mini-stats">Completed: <b id="flipDone">0</b> | Remaining: <b id="flipRem">240</b></span>
-      </h2>
+      <h2 class="board-title">Flip Sequences <span class="mini-stats">Completed: <b id="flipDone">0</b> | Remaining: <b id="flipRem">240</b></span></h2>
       <div id="flipGrid" class="grid"></div>
     </section>
   </div>
 
   <footer>
-    Auto-sync on open/refresh from <code>./completed/meta.json</code>. Click <b>Sync Now</b> anytime to refresh manually.
+    Auto-sync from <code>./completed/meta.json</code>.
   </footer>
 
   <script>
     const DEFAULT_TYPE = "N/A";
     const DEFAULT_RESULT = "N/A";
-
-    const MAIN   = { key: "main", cols: 16, total: 240, start: 1, title: "Main Sequence" };
-    const PR     = { key: "pr", cols: 10, total: 50, title: "Penalty & Referee Sequence" };
-    const MIRROR = { key: "mirror", cols: 16, total: 240, start: 1, title: "Mirror Sequences" };
-    const FLIP   = { key: "flip", cols: 16, total: 240, start: 1, title: "Flip Sequences" };
-    const ALL = [MAIN, PR, MIRROR, FLIP];
-
-    const GRAND_TOTAL = 240 + 50 + 240 + 240;
     const META_URL = "./completed/meta.json";
 
-    let activeHighlightResult = null;
-    let activeHighlightType = null;
-
-    const completedCountEl = document.getElementById("completedCount");
-    const remainingCountEl = document.getElementById("remainingCount");
-    const totalCountEl = document.getElementById("totalCount");
-    const exportTxtBtn = document.getElementById("exportTxtBtn");
-    const exportCsvBtn = document.getElementById("exportCsvBtn");
-    const manualSyncBtn = document.getElementById("manualSyncBtn");
-    const syncStatusEl = document.getElementById("syncStatus");
-    const lastSyncEl = document.getElementById("lastSync");
-
-    const resultCountEls = {
-      Goal: document.getElementById("countGoal"),
-      Miss: document.getElementById("countMiss"),
-      Save: document.getElementById("countSave"),
-      "Save Deflect": document.getElementById("countSaveDeflect"),
-      Foul: document.getElementById("countFoul")
+    const CONFIGS = {
+      main: { title: "Main Sequence", start: 1, total: 240, cols: 16 },
+      pr: { title: "Penalty & Referee Sequence", total: 50, cols: 10 },
+      mirror: { title: "Mirror Sequences", start: 1, total: 240, cols: 16 },
+      flip: { title: "Flip Sequences", start: 1, total: 240, cols: 16 }
     };
 
-    totalCountEl.textContent = String(GRAND_TOTAL);
+    const GRAND_TOTAL = 770;
+
+    let activeResult = null;
+    let activeType = null;
+
+    let state = {
+      main: new Map(),
+      pr: new Map(),
+      mirror: new Map(),
+      flip: new Map()
+    };
+
+    const ids = id => document.getElementById(id);
+
+    const grids = {
+      main: ids("mainGrid"),
+      pr: ids("prGrid"),
+      mirror: ids("mirrorGrid"),
+      flip: ids("flipGrid")
+    };
 
     const mini = {
-      main: { done: document.getElementById("mainDone"), rem: document.getElementById("mainRem") },
-      pr: { done: document.getElementById("prDone"), rem: document.getElementById("prRem") },
-      mirror: { done: document.getElementById("mirrorDone"), rem: document.getElementById("mirrorRem") },
-      flip: { done: document.getElementById("flipDone"), rem: document.getElementById("flipRem") }
+      main: { done: ids("mainDone"), rem: ids("mainRem") },
+      pr: { done: ids("prDone"), rem: ids("prRem") },
+      mirror: { done: ids("mirrorDone"), rem: ids("mirrorRem") },
+      flip: { done: ids("flipDone"), rem: ids("flipRem") }
     };
 
-    const gridEls = {
-      main: document.getElementById("mainGrid"),
-      pr: document.getElementById("prGrid"),
-      mirror: document.getElementById("mirrorGrid"),
-      flip: document.getElementById("flipGrid")
+    const resultEls = {
+      Goal: ids("countGoal"),
+      Miss: ids("countMiss"),
+      Save: ids("countSave"),
+      "Save Deflect": ids("countSaveDeflect"),
+      Foul: ids("countFoul")
     };
 
-    let sets = { main: new Set(), pr: new Set(), mirror: new Set(), flip: new Set() };
-    let types = { main: new Map(), pr: new Map(), mirror: new Map(), flip: new Map() };
-    let results = { main: new Map(), pr: new Map(), mirror: new Map(), flip: new Map() };
+    ids("totalCount").textContent = GRAND_TOTAL;
 
-    function getPrValues() {
-      const vals = [];
-      for (let i = 1001; i <= 1020; i++) vals.push(i);
-      for (let i = 2001; i <= 2030; i++) vals.push(i);
-      return vals;
+    function prValues() {
+      const arr = [];
+      for (let n = 1001; n <= 1020; n++) arr.push(n);
+      for (let n = 2001; n <= 2030; n++) arr.push(n);
+      return arr;
     }
 
-    function normalizeResultLabel(value) {
-      const raw = String(value || "").trim().toUpperCase();
-
-      if (raw === "SD" || raw === "S D" || raw === "SAVE DEFLECT") return "Save Deflect";
-      if (raw === "GOAL") return "Goal";
-      if (raw === "MISS") return "Miss";
-      if (raw === "SAVE") return "Save";
-      if (raw === "FOUL") return "Foul";
-
-      return value || DEFAULT_RESULT;
+    function gridValues(key) {
+      if (key === "pr") return prValues();
+      const cfg = CONFIGS[key];
+      return Array.from({ length: cfg.total }, (_, i) => cfg.start + i);
     }
 
-    function createCell(value) {
+    function normalizeResult(value) {
+      const v = String(value || "").trim().toUpperCase();
+      if (v === "SD" || v === "S D" || v === "SAVE DEFLECT") return "Save Deflect";
+      if (v === "GOAL") return "Goal";
+      if (v === "MISS") return "Miss";
+      if (v === "SAVE") return "Save";
+      if (v === "FOUL") return "Foul";
+      return DEFAULT_RESULT;
+    }
+
+    function createCell(num) {
       const cell = document.createElement("div");
       cell.className = "cell";
-      cell.dataset.value = String(value);
-      cell.title = `Sequence: ${value}\nType: ${DEFAULT_TYPE}\nResult: ${DEFAULT_RESULT}`;
+      cell.dataset.number = num;
 
-      const typeEl = document.createElement("div");
-      typeEl.className = "cell-type";
-      typeEl.textContent = DEFAULT_TYPE;
-
-      const numberEl = document.createElement("div");
-      numberEl.className = "cell-number";
-      numberEl.textContent = value;
-
-      const resultEl = document.createElement("div");
-      resultEl.className = "cell-result";
-      resultEl.textContent = DEFAULT_RESULT;
-
-      cell.appendChild(typeEl);
-      cell.appendChild(numberEl);
-      cell.appendChild(resultEl);
+      cell.innerHTML = `
+        <div class="cell-type">${DEFAULT_TYPE}</div>
+        <div class="cell-number">${num}</div>
+        <div class="cell-result">${DEFAULT_RESULT}</div>
+      `;
 
       return cell;
     }
 
-    function buildGridSkeleton(gridEl, cfg) {
-      gridEl.style.gridTemplateColumns = `repeat(${cfg.cols}, var(--cell-size))`;
-      gridEl.innerHTML = "";
-
-      const frag = document.createDocumentFragment();
-
-      const values = cfg.key === "pr"
-        ? getPrValues()
-        : Array.from({ length: cfg.total }, (_, i) => cfg.start + i);
-
-      values.forEach(value => frag.appendChild(createCell(value)));
-      gridEl.appendChild(frag);
+    function buildGrids() {
+      for (const key of Object.keys(CONFIGS)) {
+        grids[key].style.gridTemplateColumns = `repeat(${CONFIGS[key].cols}, var(--cell-size))`;
+        grids[key].innerHTML = "";
+        const frag = document.createDocumentFragment();
+        gridValues(key).forEach(n => frag.appendChild(createCell(n)));
+        grids[key].appendChild(frag);
+      }
     }
 
-    function applyStateToGrid(gridEl, set, typeMap, resultMap, cfg) {
-      const values = cfg.key === "pr"
-        ? getPrValues()
-        : Array.from({ length: cfg.total }, (_, i) => cfg.start + i);
+    function cleanMetaEntry(entry) {
+      return {
+        type: entry && typeof entry.type === "string" && entry.type.trim() ? entry.type.trim() : DEFAULT_TYPE,
+        result: entry && typeof entry.result === "string" && entry.result.trim() ? entry.result.trim() : DEFAULT_RESULT
+      };
+    }
 
-      values.forEach((value, i) => {
-        const cell = gridEl.children[i];
-        const done = set.has(value);
-        const typeText = typeMap.get(value) || DEFAULT_TYPE;
-        const resultText = resultMap.get(value) || DEFAULT_RESULT;
-        const normalizedResult = normalizeResultLabel(resultText);
+    function resetState() {
+      state = {
+        main: new Map(),
+        pr: new Map(),
+        mirror: new Map(),
+        flip: new Map()
+      };
+    }
+
+    function applyMetaSection(key, section) {
+      if (!section || typeof section !== "object" || Array.isArray(section)) return;
+
+      for (const [rawNum, entry] of Object.entries(section)) {
+        const num = parseInt(rawNum, 10);
+        if (!Number.isInteger(num)) continue;
+
+        if (key === "main" && num >= 1 && num <= 240) {
+          state.main.set(num, cleanMetaEntry(entry));
+        }
+
+        if (key === "main" && ((num >= 1001 && num <= 1020) || (num >= 2001 && num <= 2030))) {
+          state.pr.set(num, cleanMetaEntry(entry));
+        }
+
+        if ((key === "mirror" || key === "flip") && num >= 1 && num <= 240) {
+          state[key].set(num, cleanMetaEntry(entry));
+        }
+      }
+    }
+
+    function renderGrid(key) {
+      const values = gridValues(key);
+
+      values.forEach((num, index) => {
+        const cell = grids[key].children[index];
+        const data = state[key].get(num);
+        const done = !!data;
+        const type = data ? data.type : DEFAULT_TYPE;
+        const result = data ? data.result : DEFAULT_RESULT;
+        const normalizedResult = normalizeResult(result);
 
         cell.classList.toggle("green", done);
-        cell.querySelector(".cell-type").textContent = typeText;
-        cell.querySelector(".cell-result").textContent = resultText;
+        cell.classList.remove("highlighted");
+
+        cell.querySelector(".cell-type").textContent = type;
+        cell.querySelector(".cell-result").textContent = result;
 
         cell.dataset.done = done ? "true" : "false";
+        cell.dataset.type = type;
         cell.dataset.result = normalizedResult;
-        cell.dataset.type = typeText;
 
-        cell.title = `Sequence: ${value}\nType: ${typeText}\nResult: ${resultText}`;
+        cell.title = `Sequence: ${num}\nType: ${type}\nResult: ${result}`;
       });
     }
 
-    function clearHighlights() {
-      activeHighlightResult = null;
-      activeHighlightType = null;
-
-      document.querySelectorAll(".cell.highlighted").forEach(cell => {
-        cell.classList.remove("highlighted");
-      });
-
-      document.querySelectorAll(".result-filter.selected-filter, .type-filter.selected-filter").forEach(btn => {
-        btn.classList.remove("selected-filter");
-      });
+    function renderAll() {
+      Object.keys(CONFIGS).forEach(renderGrid);
+      updateCounts();
+      applyFilters();
     }
 
-    function applyHighlights() {
-      document.querySelectorAll(".cell.highlighted").forEach(cell => {
-    cell.classList.remove("highlighted");
-  });
+    function updateCounts() {
+      let completed = 0;
 
-  if (!activeHighlightResult && !activeHighlightType) {
-    return;
-  }
+      for (const key of Object.keys(CONFIGS)) {
+        const done = state[key].size;
+        completed += done;
+        mini[key].done.textContent = done;
+        mini[key].rem.textContent = CONFIGS[key].total - done;
+      }
 
-  document.querySelectorAll(".cell").forEach(cell => {
-    const isDone = cell.dataset.done === "true";
+      ids("completedCount").textContent = completed;
+      ids("remainingCount").textContent = GRAND_TOTAL - completed;
 
-    const resultMatch =
-      !activeHighlightResult || cell.dataset.result === activeHighlightResult;
-
-    const typeMatch =
-      !activeHighlightType || cell.dataset.type === activeHighlightType;
-
-    if (isDone && resultMatch && typeMatch) {
-      cell.classList.add("highlighted");
-    }
-  });
-    }
-
-    function resetFilterButtonsVisual() {
-      document.querySelectorAll(".result-filter, .type-filter").forEach(btn => {
-        btn.classList.remove("selected-filter");
-      });
-    }
-
-    document.querySelectorAll(".result-filter").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const resultName = btn.dataset.result;
-
-        document.querySelectorAll(".result-filter.selected-filter").forEach(b => {
-          b.classList.remove("selected-filter");
-        });
-
-        if (activeHighlightResult === resultName) {
-          activeHighlightResult = null;
-        } else {
-          activeHighlightResult = resultName;
-          btn.classList.add("selected-filter");
-        }
-
-        applyHighlights();
-      });
-    });
-
-    document.querySelectorAll(".type-filter").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const typeName = btn.dataset.type;
-
-        document.querySelectorAll(".type-filter.selected-filter").forEach(b => {
-          b.classList.remove("selected-filter");
-        });
-
-        if (activeHighlightType === typeName) {
-          activeHighlightType = null;
-        } else {
-          activeHighlightType = typeName;
-          btn.classList.add("selected-filter");
-        }
-
-        applyHighlights();
-      });
-    });
-
-    document.getElementById("clearHighlightBtn").addEventListener("click", clearHighlights);
-
-    function updateResultCounts() {
-      const counts = {
+      const resultCounts = {
         Goal: 0,
         Miss: 0,
         Save: 0,
@@ -530,179 +421,117 @@
         Foul: 0
       };
 
-      for (const cfg of ALL) {
-        for (const n of sets[cfg.key]) {
-          const resultText = normalizeResultLabel(results[cfg.key].get(n) || DEFAULT_RESULT);
-          if (counts[resultText] !== undefined) {
-            counts[resultText] += 1;
-          }
+      for (const key of Object.keys(CONFIGS)) {
+        for (const data of state[key].values()) {
+          const r = normalizeResult(data.result);
+          if (resultCounts[r] !== undefined) resultCounts[r]++;
         }
       }
 
-      Object.keys(counts).forEach(key => {
-        resultCountEls[key].textContent = String(counts[key]);
+      Object.entries(resultCounts).forEach(([k, v]) => {
+        resultEls[k].textContent = v;
       });
     }
 
-    function updateAllCounts() {
-      for (const cfg of ALL) {
-        const done = sets[cfg.key].size;
-        mini[cfg.key].done.textContent = String(done);
-        mini[cfg.key].rem.textContent = String(cfg.total - done);
-      }
-
-      const completed = sets.main.size + sets.pr.size + sets.mirror.size + sets.flip.size;
-      completedCountEl.textContent = String(completed);
-      remainingCountEl.textContent = String(GRAND_TOTAL - completed);
-
-      updateResultCounts();
+    function clearSelectedButtons() {
+      document.querySelectorAll(".pill.selected").forEach(btn => {
+        btn.classList.remove("selected");
+      });
     }
 
-    function render() {
-     for (const cfg of ALL) {
-    applyStateToGrid(gridEls[cfg.key], sets[cfg.key], types[cfg.key], results[cfg.key], cfg);
-  }
-
-  updateAllCounts();
-  applyHighlights();
-  }
-
-  updateAllCounts();
-
-  if (activeHighlightResult || activeHighlightType) {
-    applyHighlights();
-  } else {
-    document.querySelectorAll(".cell.highlighted").forEach(cell => {
-      cell.classList.remove("highlighted");
-    });
-
-    document.querySelectorAll(".result-filter, .type-filter").forEach(btn => {
-      btn.classList.remove("selected-filter");
-      btn.blur();
-    });
-  }
+    function clearFilters() {
+      activeResult = null;
+      activeType = null;
+      clearSelectedButtons();
+      document.querySelectorAll(".cell.highlighted").forEach(c => c.classList.remove("highlighted"));
     }
 
-    function resetState() {
-      sets = {
-        main: new Set(),
-        pr: new Set(),
-        mirror: new Set(),
-        flip: new Set()
-      };
+    function applyFilters() {
+      document.querySelectorAll(".cell.highlighted").forEach(c => c.classList.remove("highlighted"));
 
-      types = {
-        main: new Map(),
-        pr: new Map(),
-        mirror: new Map(),
-        flip: new Map()
-      };
+      if (!activeResult && !activeType) return;
 
-      results = {
-        main: new Map(),
-        pr: new Map(),
-        mirror: new Map(),
-        flip: new Map()
-      };
+      document.querySelectorAll(".cell").forEach(cell => {
+        const done = cell.dataset.done === "true";
+        const resultOk = !activeResult || cell.dataset.result === activeResult;
+        const typeOk = !activeType || cell.dataset.type === activeType;
+
+        if (done && resultOk && typeOk) {
+          cell.classList.add("highlighted");
+        }
+      });
     }
 
-    function parseMetaObject(obj) {
-      return obj && typeof obj === "object" && !Array.isArray(obj) ? obj : {};
-    }
+    function setupFilters() {
+      document.querySelectorAll(".result-filter").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const value = btn.dataset.result;
 
-    function applyMainMeta(obj) {
-      for (const [rawKey, rawValue] of Object.entries(obj)) {
-        const n = parseInt(rawKey, 10);
-        if (!Number.isInteger(n) || n < 1 || n > 240) continue;
-        if (!rawValue || typeof rawValue !== "object" || Array.isArray(rawValue)) continue;
+          document.querySelectorAll(".result-filter").forEach(b => b.classList.remove("selected"));
 
-        sets.main.add(n);
-        types.main.set(n, typeof rawValue.type === "string" && rawValue.type.trim() ? rawValue.type.trim() : DEFAULT_TYPE);
-        results.main.set(n, typeof rawValue.result === "string" && rawValue.result.trim() ? rawValue.result.trim() : DEFAULT_RESULT);
-      }
-    }
+          if (activeResult === value) {
+            activeResult = null;
+          } else {
+            activeResult = value;
+            btn.classList.add("selected");
+          }
 
-    function applyPrMeta(obj) {
-      for (const [rawKey, rawValue] of Object.entries(obj)) {
-        const n = parseInt(rawKey, 10);
-        if (!Number.isInteger(n)) continue;
-        if (!((n >= 1001 && n <= 1020) || (n >= 2001 && n <= 2030))) continue;
-        if (!rawValue || typeof rawValue !== "object" || Array.isArray(rawValue)) continue;
-
-        sets.pr.add(n);
-        types.pr.set(n, typeof rawValue.type === "string" && rawValue.type.trim() ? rawValue.type.trim() : DEFAULT_TYPE);
-        results.pr.set(n, typeof rawValue.result === "string" && rawValue.result.trim() ? rawValue.result.trim() : DEFAULT_RESULT);
-      }
-    }
-
-    function applyGenericMeta(key, obj) {
-      for (const [rawKey, rawValue] of Object.entries(obj)) {
-        const n = parseInt(rawKey, 10);
-        if (!Number.isInteger(n) || n < 1 || n > 240) continue;
-        if (!rawValue || typeof rawValue !== "object" || Array.isArray(rawValue)) continue;
-
-        sets[key].add(n);
-        types[key].set(n, typeof rawValue.type === "string" && rawValue.type.trim() ? rawValue.type.trim() : DEFAULT_TYPE);
-        results[key].set(n, typeof rawValue.result === "string" && rawValue.result.trim() ? rawValue.result.trim() : DEFAULT_RESULT);
-      }
-    }
-
-    function fillMissingMaps() {
-      for (let n = 1; n <= 240; n++) {
-        ["main", "mirror", "flip"].forEach(key => {
-          if (!types[key].has(n)) types[key].set(n, DEFAULT_TYPE);
-          if (!results[key].has(n)) results[key].set(n, DEFAULT_RESULT);
+          applyFilters();
         });
-      }
-
-      getPrValues().forEach(n => {
-        if (!types.pr.has(n)) types.pr.set(n, DEFAULT_TYPE);
-        if (!results.pr.has(n)) results.pr.set(n, DEFAULT_RESULT);
       });
+
+      document.querySelectorAll(".type-filter").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const value = btn.dataset.type;
+
+          document.querySelectorAll(".type-filter").forEach(b => b.classList.remove("selected"));
+
+          if (activeType === value) {
+            activeType = null;
+          } else {
+            activeType = value;
+            btn.classList.add("selected");
+          }
+
+          applyFilters();
+        });
+      });
+
+      ids("clearHighlightBtn").addEventListener("click", clearFilters);
     }
 
     async function loadFromJson() {
-      syncStatusEl.textContent = "Fetching…";
-      manualSyncBtn.disabled = true;
+      ids("syncStatus").textContent = "Fetching…";
+      ids("manualSyncBtn").disabled = true;
 
       try {
-        const metaRes = await fetch(META_URL + "?ts=" + Date.now(), { cache: "no-store" });
-        if (!metaRes.ok) throw new Error(`meta.json fetch failed: ${metaRes.status} ${metaRes.statusText}`);
+        clearFilters();
 
-        const metaJson = await metaRes.json();
+        const res = await fetch(META_URL + "?ts=" + Date.now(), { cache: "no-store" });
+        if (!res.ok) throw new Error(`meta.json fetch failed: ${res.status}`);
+
+        const meta = await res.json();
 
         resetState();
+        applyMetaSection("main", meta.main);
+        applyMetaSection("mirror", meta.mirror);
+        applyMetaSection("flip", meta.flip);
 
-        const mainMeta = parseMetaObject(metaJson.main);
-        const mirrorMeta = parseMetaObject(metaJson.mirror);
-        const flipMeta = parseMetaObject(metaJson.flip);
+        renderAll();
 
-        applyMainMeta(mainMeta);
-        applyPrMeta(mainMeta);
-        applyGenericMeta("mirror", mirrorMeta);
-        applyGenericMeta("flip", flipMeta);
-
-        fillMissingMaps();
-        render();
-
-        if (!activeHighlightResult && !activeHighlightType) {
-          resetFilterButtonsVisual();
-        }
-
-        syncStatusEl.textContent = "Synced ✓";
-        lastSyncEl.textContent = `Last sync: ${new Date().toLocaleString()}`;
-      } catch (e) {
-        console.error("JSON LOAD FAILED:", e);
-        syncStatusEl.textContent = "Sync error";
-        lastSyncEl.textContent = "";
-        alert(`JSON Sync failed.\n\n${e.message || e}`);
+        ids("syncStatus").textContent = "Synced ✓";
+        ids("lastSync").textContent = `Last sync: ${new Date().toLocaleString()}`;
+      } catch (err) {
+        console.error(err);
+        ids("syncStatus").textContent = "Sync error";
+        alert(`JSON Sync failed.\n\n${err.message || err}`);
       } finally {
-        manualSyncBtn.disabled = false;
+        ids("manualSyncBtn").disabled = false;
       }
     }
 
-    function getSorted(set) {
-      return Array.from(set).sort((a, b) => a - b);
+    function sortedEntries(key) {
+      return Array.from(state[key].entries()).sort((a, b) => a[0] - b[0]);
     }
 
     function downloadBlob(blob, filename) {
@@ -717,59 +546,38 @@
     }
 
     function exportTxt() {
-      const lines = [
-        MAIN.title,
-        ...getSorted(sets.main).map(n => `${n} - ${types.main.get(n) || DEFAULT_TYPE} - ${results.main.get(n) || DEFAULT_RESULT}`),
-        "",
-        PR.title,
-        ...getSorted(sets.pr).map(n => `${n} - ${types.pr.get(n) || DEFAULT_TYPE} - ${results.pr.get(n) || DEFAULT_RESULT}`),
-        "",
-        MIRROR.title,
-        ...getSorted(sets.mirror).map(n => `${n} - ${types.mirror.get(n) || DEFAULT_TYPE} - ${results.mirror.get(n) || DEFAULT_RESULT}`),
-        "",
-        FLIP.title,
-        ...getSorted(sets.flip).map(n => `${n} - ${types.flip.get(n) || DEFAULT_TYPE} - ${results.flip.get(n) || DEFAULT_RESULT}`)
-      ].join("\n");
+      const lines = [];
 
-      downloadBlob(new Blob([lines], { type: "text/plain;charset=utf-8" }), "sequences.txt");
+      for (const key of Object.keys(CONFIGS)) {
+        lines.push(CONFIGS[key].title);
+        sortedEntries(key).forEach(([n, d]) => lines.push(`${n} - ${d.type} - ${d.result}`));
+        lines.push("");
+      }
+
+      downloadBlob(new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" }), "sequences.txt");
     }
 
     function exportCsv() {
       const esc = v => String(v || "").replace(/"/g, '""');
+      const lines = [];
 
-      const lines = [
-        MAIN.title,
-        "BlockNumber,BlockType,BlockResult",
-        ...getSorted(sets.main).map(n => `${n},"${esc(types.main.get(n) || DEFAULT_TYPE)}","${esc(results.main.get(n) || DEFAULT_RESULT)}"`),
-        "",
-        PR.title,
-        "BlockNumber,BlockType,BlockResult",
-        ...getSorted(sets.pr).map(n => `${n},"${esc(types.pr.get(n) || DEFAULT_TYPE)}","${esc(results.pr.get(n) || DEFAULT_RESULT)}"`),
-        "",
-        MIRROR.title,
-        "BlockNumber,BlockType,BlockResult",
-        ...getSorted(sets.mirror).map(n => `${n},"${esc(types.mirror.get(n) || DEFAULT_TYPE)}","${esc(results.mirror.get(n) || DEFAULT_RESULT)}"`),
-        "",
-        FLIP.title,
-        "BlockNumber,BlockType,BlockResult",
-        ...getSorted(sets.flip).map(n => `${n},"${esc(types.flip.get(n) || DEFAULT_TYPE)}","${esc(results.flip.get(n) || DEFAULT_RESULT)}"`)
-      ].join("\r\n") + "\r\n";
+      for (const key of Object.keys(CONFIGS)) {
+        lines.push(CONFIGS[key].title);
+        lines.push("BlockNumber,BlockType,BlockResult");
+        sortedEntries(key).forEach(([n, d]) => lines.push(`${n},"${esc(d.type)}","${esc(d.result)}"`));
+        lines.push("");
+      }
 
-      downloadBlob(new Blob([lines], { type: "text/csv;charset=utf-8" }), "sequences.csv");
+      downloadBlob(new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8" }), "sequences.csv");
     }
 
-    exportTxtBtn.addEventListener("click", exportTxt);
-    exportCsvBtn.addEventListener("click", exportCsv);
-    manualSyncBtn.addEventListener("click", loadFromJson);
+    ids("exportTxtBtn").addEventListener("click", exportTxt);
+    ids("exportCsvBtn").addEventListener("click", exportCsv);
+    ids("manualSyncBtn").addEventListener("click", loadFromJson);
 
-    buildGridSkeleton(gridEls.main, MAIN);
-    buildGridSkeleton(gridEls.pr, PR);
-    buildGridSkeleton(gridEls.mirror, MIRROR);
-    buildGridSkeleton(gridEls.flip, FLIP);
-
-   activeHighlightResult = null;
-activeHighlightType = null;
-clearHighlights();
+    buildGrids();
+    setupFilters();
+    clearFilters();
     loadFromJson();
   </script>
 </body>
