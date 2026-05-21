@@ -79,21 +79,30 @@
       padding: 6px 10px;
       border: 1px solid #ddd;
       border-radius: 999px;
-      background: white;
+      background: #fff !important;
+      color: #333;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       outline: none;
-    }
-
-    .result-pill.active {
-      border-color: #222;
-      background: #eaf7ff;
-    }
-
-    .result-pill:focus {
-      outline: none;
       box-shadow: none;
+    }
+
+    .result-pill:hover {
+      background: #f5f5f5 !important;
+    }
+
+    .result-pill.selected-filter {
+      border-color: #222 !important;
+      background: #eaf7ff !important;
+      color: #111;
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.08);
+    }
+
+    .result-pill:focus,
+    .result-pill:focus-visible,
+    .result-pill:active {
+      outline: none;
     }
 
     .boards, .boards-below {
@@ -348,11 +357,13 @@
 
     function normalizeResultLabel(value) {
       const raw = String(value || "").trim().toUpperCase();
+
       if (raw === "SD" || raw === "S D" || raw === "SAVE DEFLECT") return "Save Deflect";
       if (raw === "GOAL") return "Goal";
       if (raw === "MISS") return "Miss";
       if (raw === "SAVE") return "Save";
       if (raw === "FOUL") return "Foul";
+
       return value || DEFAULT_RESULT;
     }
 
@@ -427,8 +438,8 @@
         cell.classList.remove("highlighted");
       });
 
-      document.querySelectorAll(".result-filter.active, .type-filter.active").forEach(btn => {
-        btn.classList.remove("active");
+      document.querySelectorAll(".result-filter.selected-filter, .type-filter.selected-filter").forEach(btn => {
+        btn.classList.remove("selected-filter");
       });
     }
 
@@ -452,17 +463,25 @@
       });
     }
 
+    function resetFilterButtonsVisual() {
+      document.querySelectorAll(".result-filter, .type-filter").forEach(btn => {
+        btn.classList.remove("selected-filter");
+      });
+    }
+
     document.querySelectorAll(".result-filter").forEach(btn => {
       btn.addEventListener("click", () => {
         const resultName = btn.dataset.result;
 
-        document.querySelectorAll(".result-filter.active").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".result-filter.selected-filter").forEach(b => {
+          b.classList.remove("selected-filter");
+        });
 
         if (activeHighlightResult === resultName) {
           activeHighlightResult = null;
         } else {
           activeHighlightResult = resultName;
-          btn.classList.add("active");
+          btn.classList.add("selected-filter");
         }
 
         applyHighlights();
@@ -473,13 +492,15 @@
       btn.addEventListener("click", () => {
         const typeName = btn.dataset.type;
 
-        document.querySelectorAll(".type-filter.active").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".type-filter.selected-filter").forEach(b => {
+          b.classList.remove("selected-filter");
+        });
 
         if (activeHighlightType === typeName) {
           activeHighlightType = null;
         } else {
           activeHighlightType = typeName;
-          btn.classList.add("active");
+          btn.classList.add("selected-filter");
         }
 
         applyHighlights();
@@ -489,12 +510,20 @@
     document.getElementById("clearHighlightBtn").addEventListener("click", clearHighlights);
 
     function updateResultCounts() {
-      const counts = { Goal: 0, Miss: 0, Save: 0, "Save Deflect": 0, Foul: 0 };
+      const counts = {
+        Goal: 0,
+        Miss: 0,
+        Save: 0,
+        "Save Deflect": 0,
+        Foul: 0
+      };
 
       for (const cfg of ALL) {
         for (const n of sets[cfg.key]) {
           const resultText = normalizeResultLabel(results[cfg.key].get(n) || DEFAULT_RESULT);
-          if (counts[resultText] !== undefined) counts[resultText] += 1;
+          if (counts[resultText] !== undefined) {
+            counts[resultText] += 1;
+          }
         }
       }
 
@@ -527,9 +556,26 @@
     }
 
     function resetState() {
-      sets = { main: new Set(), pr: new Set(), mirror: new Set(), flip: new Set() };
-      types = { main: new Map(), pr: new Map(), mirror: new Map(), flip: new Map() };
-      results = { main: new Map(), pr: new Map(), mirror: new Map(), flip: new Map() };
+      sets = {
+        main: new Set(),
+        pr: new Set(),
+        mirror: new Set(),
+        flip: new Set()
+      };
+
+      types = {
+        main: new Map(),
+        pr: new Map(),
+        mirror: new Map(),
+        flip: new Map()
+      };
+
+      results = {
+        main: new Map(),
+        pr: new Map(),
+        mirror: new Map(),
+        flip: new Map()
+      };
     }
 
     function parseMetaObject(obj) {
@@ -611,6 +657,10 @@
         fillMissingMaps();
         render();
 
+        if (!activeHighlightResult && !activeHighlightType) {
+          resetFilterButtonsVisual();
+        }
+
         syncStatusEl.textContent = "Synced ✓";
         lastSyncEl.textContent = `Last sync: ${new Date().toLocaleString()}`;
       } catch (e) {
@@ -689,6 +739,7 @@
     buildGridSkeleton(gridEls.mirror, MIRROR);
     buildGridSkeleton(gridEls.flip, FLIP);
 
+    resetFilterButtonsVisual();
     loadFromJson();
   </script>
 </body>
