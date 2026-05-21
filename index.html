@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Seq Completion Tracker</title>
+
   <style>
     :root {
       --gap: 6px;
@@ -48,7 +49,9 @@
       font-weight: 700;
     }
 
-    button.action:hover { background: #f5f5f5; }
+    button.action:hover {
+      background: #f5f5f5;
+    }
 
     .status {
       font-size: 13px;
@@ -65,6 +68,13 @@
       border: 1px solid #eee;
       border-radius: 10px;
       background: #fafafa;
+      align-items: center;
+    }
+
+    .type-title {
+      font-size: 13px;
+      font-weight: 800;
+      align-self: center;
     }
 
     .result-pill {
@@ -225,12 +235,25 @@
   </header>
 
   <section class="result-summary" aria-live="polite">
+    <span class="type-title">Result:</span>
     <button class="result-pill result-filter" data-result="Goal" type="button">Goal: <b id="countGoal">0</b></button>
     <button class="result-pill result-filter" data-result="Miss" type="button">Miss: <b id="countMiss">0</b></button>
     <button class="result-pill result-filter" data-result="Save" type="button">Save: <b id="countSave">0</b></button>
     <button class="result-pill result-filter" data-result="Save Deflect" type="button">Save Deflect: <b id="countSaveDeflect">0</b></button>
     <button class="result-pill result-filter" data-result="Foul" type="button">Foul: <b id="countFoul">0</b></button>
     <button class="result-pill" id="clearHighlightBtn" type="button">Clear Highlight</button>
+  </section>
+
+  <section class="result-summary" aria-live="polite">
+    <span class="type-title">Type:</span>
+
+    <button class="result-pill type-filter" data-type="K O" type="button">Kick Off</button>
+    <button class="result-pill type-filter" data-type="G K" type="button">Goal Kick</button>
+    <button class="result-pill type-filter" data-type="F K" type="button">Free Kick</button>
+    <button class="result-pill type-filter" data-type="COR" type="button">Corner</button>
+    <button class="result-pill type-filter" data-type="REF" type="button">Referee</button>
+    <button class="result-pill type-filter" data-type="P T" type="button">Penalty</button>
+    <button class="result-pill type-filter" data-type="N/A" type="button">N/A</button>
   </section>
 
   <div class="boards">
@@ -287,6 +310,7 @@
     const META_URL = "./completed/meta.json";
 
     let activeHighlightResult = null;
+    let activeHighlightType = null;
 
     const completedCountEl = document.getElementById("completedCount");
     const remainingCountEl = document.getElementById("remainingCount");
@@ -399,32 +423,42 @@
 
         cell.dataset.done = done ? "true" : "false";
         cell.dataset.result = normalizedResult;
+        cell.dataset.type = typeText;
+
         cell.title = `Sequence: ${value}\nType: ${typeText}\nResult: ${resultText}`;
       });
     }
 
     function clearHighlights() {
       activeHighlightResult = null;
+      activeHighlightType = null;
 
       document.querySelectorAll(".cell.highlighted").forEach(cell => {
         cell.classList.remove("highlighted");
       });
 
-      document.querySelectorAll(".result-filter.active").forEach(btn => {
+      document.querySelectorAll(".result-filter.active, .type-filter.active").forEach(btn => {
         btn.classList.remove("active");
       });
     }
 
-    function highlightByResult(resultName) {
-      clearHighlights();
-      activeHighlightResult = resultName;
-
-      document.querySelectorAll(`.result-filter[data-result="${resultName}"]`).forEach(btn => {
-        btn.classList.add("active");
+    function applyHighlights() {
+      document.querySelectorAll(".cell.highlighted").forEach(cell => {
+        cell.classList.remove("highlighted");
       });
 
+      if (!activeHighlightResult && !activeHighlightType) return;
+
       document.querySelectorAll(".cell").forEach(cell => {
-        if (cell.dataset.done === "true" && cell.dataset.result === resultName) {
+        const isDone = cell.dataset.done === "true";
+
+        const resultMatch =
+          !activeHighlightResult || cell.dataset.result === activeHighlightResult;
+
+        const typeMatch =
+          !activeHighlightType || cell.dataset.type === activeHighlightType;
+
+        if (isDone && resultMatch && typeMatch) {
           cell.classList.add("highlighted");
         }
       });
@@ -433,7 +467,38 @@
     document.querySelectorAll(".result-filter").forEach(btn => {
       btn.addEventListener("click", () => {
         const resultName = btn.dataset.result;
-        activeHighlightResult === resultName ? clearHighlights() : highlightByResult(resultName);
+
+        document.querySelectorAll(".result-filter.active").forEach(b => {
+          b.classList.remove("active");
+        });
+
+        if (activeHighlightResult === resultName) {
+          activeHighlightResult = null;
+        } else {
+          activeHighlightResult = resultName;
+          btn.classList.add("active");
+        }
+
+        applyHighlights();
+      });
+    });
+
+    document.querySelectorAll(".type-filter").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const typeName = btn.dataset.type;
+
+        document.querySelectorAll(".type-filter.active").forEach(b => {
+          b.classList.remove("active");
+        });
+
+        if (activeHighlightType === typeName) {
+          activeHighlightType = null;
+        } else {
+          activeHighlightType = typeName;
+          btn.classList.add("active");
+        }
+
+        applyHighlights();
       });
     });
 
@@ -474,12 +539,7 @@
       }
 
       updateAllCounts();
-
-      if (activeHighlightResult) {
-        const keep = activeHighlightResult;
-        activeHighlightResult = null;
-        highlightByResult(keep);
-      }
+      applyHighlights();
     }
 
     function getSorted(set) {
