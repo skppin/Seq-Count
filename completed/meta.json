@@ -228,6 +228,10 @@
                             "type":  "F K",
                             "result":  "Miss"
                         },
+                 "93":  {
+                            "type":  "G K",
+                            "result":  "Miss"
+                        },
                  "94":  {
                             "type":  "K O",
                             "result":  "Miss"
@@ -373,6 +377,10 @@
                              "result":  "SD"
                          },
                  "161":  {
+                             "type":  "G K",
+                             "result":  "S D"
+                         },
+                 "163":  {
                              "type":  "G K",
                              "result":  "S D"
                          },
