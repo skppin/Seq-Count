@@ -252,6 +252,10 @@
                             "type":  "F K",
                             "result":  "Miss"
                         },
+                 "96":  {
+                            "type":  "K O",
+                            "result":  "Miss"
+                        },
                  "97":  {
                             "type":  "G K",
                             "result":  "Foul"
@@ -330,6 +334,10 @@
                          },
                  "130":  {
                              "type":  "F K",
+                             "result":  "Miss"
+                         },
+                 "131":  {
+                             "type":  "G K",
                              "result":  "Miss"
                          },
                  "133":  {
@@ -429,8 +437,8 @@
                              "result":  "Foul"
                          },
                  "181":  {
-                             "type":  "N/A",
-                             "result":  "N/A"
+                             "type":  "G K",
+                             "result":  "S D"
                          },
                  "184":  {
                              "type":  "G K",
@@ -441,6 +449,10 @@
                              "result":  "S D"
                          },
                  "187":  {
+                             "type":  "K O",
+                             "result":  "SD"
+                         },
+                 "189":  {
                              "type":  "K O",
                              "result":  "SD"
                          },
@@ -455,6 +467,10 @@
                  "199":  {
                              "type":  "K O",
                              "result":  "Foul"
+                         },
+                 "201":  {
+                             "type":  "G K",
+                             "result":  "S D"
                          },
                  "204":  {
                              "type":  "K O",
@@ -524,6 +540,14 @@
                              "type":  "G K",
                              "result":  "Foul"
                          },
+                 "225":  {
+                             "type":  "G K",
+                             "result":  "Foul"
+                         },
+                 "226":  {
+                             "type":  "G K",
+                             "result":  "Foul"
+                         },
                  "230":  {
                              "type":  "G K",
                              "result":  "Foul"
@@ -573,11 +597,11 @@
                               "result":  "N/A"
                           },
                  "2007":  {
-                              "type":  "N/A",
+                              "type":  "P T",
                               "result":  "N/A"
                           },
                  "2008":  {
-                              "type":  "N/A",
+                              "type":  "P T",
                               "result":  "N/A"
                           }
              },
