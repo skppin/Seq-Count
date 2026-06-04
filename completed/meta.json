@@ -360,6 +360,10 @@
                              "type":  "COR",
                              "result":  "Miss"
                          },
+                 "140":  {
+                             "type":  "COR",
+                             "result":  "Miss"
+                         },
                  "141":  {
                              "type":  "K O",
                              "result":  "S D"
